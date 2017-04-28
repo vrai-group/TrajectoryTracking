@@ -4,6 +4,14 @@
 import numpy as np
 import datetime
 
+basket_ids = ['100F', '1721', '1269', '01E1',
+              '0209', '0F22', '0588', '1C55',
+              '0FC7', '16DB', '1C6F', '16CF',
+              '0F17', '01d1', '1684', ]
+
+store_width = 4496.0
+store_height = 3518.0
+
 id = []
 tag_id = []
 timestamp = []
