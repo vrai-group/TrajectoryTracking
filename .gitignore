@@ -1,1 +1,4 @@
-database/*
+.idea/*
+*.csv
+*.txt
+*.db
