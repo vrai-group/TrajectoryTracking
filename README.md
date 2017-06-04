@@ -7,7 +7,7 @@ Trajectory Tracking Project
 * filterpy 0.1.5
 
 ## How to use the DB builder-script
-_Note: Before you start using the builder-script, make sure that a folder called "sqlite" exists in the root folder of the builder.py script (just create it if necessary). It is the folder where you will find the .db result files (you can edit the result folder name whenever you want by editing the builder.py script_
+_Note: Before you start using the builder-script, make sure that a folder called "sqlite" exists in the root folder of the builder.py script (just create it if necessary). It is the folder where you will find the .db result files (you can edit the result folder name whenever you want by editing the builder.py script)_
 
 In the _builder.py_ script you'll find two editable contents: the "DATASET" section and the "MODEL" section.
 * __Dataset section__: Here you will find three fields to customize. The *dataset_folder* is the folder containing the dataset file, expressed by the second editable variable *dataset_file*. Editing the *dataset_ext* allows you to specify the text-file extention of your dataset.
