@@ -20,10 +20,14 @@ dataset_file = "testset"  # Define dataset file name
 dataset_ext = ".txt"  # Define dataset file extention
 
 ###################################################################
+
+result_folder = "sqlite"  # Result folder name. Editing it is unnecessary.
+
+###################################################################
 ###################################################################
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
 
-sql_filepath = os.path.join(PROJECT_ROOT, "sqlite", dataset_file + ".db")
+sql_filepath = os.path.join(PROJECT_ROOT, result_folder, dataset_file + ".db")
 dataset_filepath = os.path.join(PROJECT_ROOT, dataset_folder, dataset_file + dataset_ext)
 
 try:
