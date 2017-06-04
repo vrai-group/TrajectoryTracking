@@ -5,3 +5,9 @@ Trajectory Tracking Project
 * Tkinter
 * Peewee 2.10.1
 * filterpy 0.1.5
+
+## How to use the DB builder-script
+In the 'database/builder.py' script you'll find two editable contents: the "DATASET" section and the "MODEL" section.
+* Dataset section: Here you will find three fields to customize. The "dataset_folder" is the folder containing the dataset file, expressed by the second editable variable "dataset_file". Editing the "dataset_ext" allows you to specify the text-file extention of your dataset.
+* Model section: It is the core of the builder-script. Basically, there are two things you need to customize: one is the "class" from which to create the model you will be using (follow the link https://en.wikipedia.org/wiki/Database_model if you don't know what a Database model is); the other one is the "build(line)" function body, where you have to specify the behaviour of the saving process of each "line" of the dataset (note that the "build" function must return an object called "model" which is the constructor of your custom "class").
+You don't have to edit anything, excepts the "DATASET" and "MODEL" sections, in order to make the builder-script work.
