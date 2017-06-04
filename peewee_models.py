@@ -3,11 +3,9 @@ from peewee import *
 # Data Base File (SQLite)
 db = SqliteDatabase('database/trajectory_tracking.db')
 
-
 class BaseModel(Model):
     class Meta:
         database = db
-
 
 class Aoi(BaseModel):
     "Regioni di interesse che costituiscono la mappa"
@@ -21,10 +19,6 @@ class Aoi(BaseModel):
     p3_x = FloatField()
     p3_y = FloatField()
 
-    class Meta:
-        database = db
-
-
 class Cart(BaseModel):
     "Istanze che descrivono la posizione di un carrello"
     id = IntegerField(primary_key=True)
@@ -32,6 +26,3 @@ class Cart(BaseModel):
     time_stamp = DateTimeField()
     x = FloatField()
     y = FloatField()
-
-    class Meta:
-        database = db
