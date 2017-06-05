@@ -31,7 +31,7 @@ COLOR_BLACK = "#000000"
 
 # Disegna la mappa
 tkmaster = Tk(className="map")
-map = Map(tkmaster, scale=20, width=1400, height=710)
+map = Map(tkmaster, scale=18, width=1100, height=680)
 map.pack(expand=YES, fill=BOTH, side="left")
 
 o_limit = [0.1, 14., 28.5, 35.18]  # limiti della regione di origine: [Xmin, Xmax, Ymin, Ymax]
