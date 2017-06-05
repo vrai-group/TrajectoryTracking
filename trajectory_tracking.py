@@ -31,7 +31,7 @@ COLOR_BLACK = "#000000"
 
 # Disegna la mappa
 tkmaster = Tk(className="map")
-map = Map(tkmaster, scale=18, width=1100, height=680)
+map = Map(tkmaster, scale=18, width=1100, height=640)
 map.pack(expand=YES, fill=BOTH, side="left")
 
 o_limit = [0.1, 14., 28.5, 35.18]  # limiti della regione di origine: [Xmin, Xmax, Ymin, Ymax]
@@ -96,6 +96,11 @@ if mode == 1:
     trajectories[len(trajectories) - 1].draw(widget=map, color=COLORS[4])
 
 # MODE: salva tutte le corse nella lista trajectories
+def isInternal(xmin, xmax, ymin, ymax, var):
+    if var.x > xmin and var.x < xmax and var.y > ymin and var.y < ymax:
+        return True
+    else:
+        return False
 if mode == 2:
     for id in carts_id:
         cart_array = Cart.select().order_by(Cart.time_stamp.desc()) \
@@ -107,10 +112,16 @@ if mode == 2:
         # la lista cart_rif ha tutte le corse che iniziano con un punto interno all'origine e finiscono con uno esterno
         index = len(cart_rif) - 1
         while index > 0:
-            if cart_rif[index].x > o_limit[0] and cart_rif[index].x < o_limit[1] and cart_rif[index].y > \
-                    o_limit[2] and cart_rif[index].y < o_limit[3]:
-                if cart_rif[index - 1].x > o_limit[0] and cart_rif[index - 1].x < o_limit[1] and cart_rif[index - 1].y > \
-                        o_limit[2] and cart_rif[index - 1].y < o_limit[3]:
+            if isInternal(o_limit[0], o_limit[1], o_limit[2], o_limit[3], cart_rif[index]) or isInternal(41.18, 44.23,
+                                                                                                         19.53, 21.49,
+                                                                                                         cart_rif[
+                                                                                                             index]):
+                if isInternal(o_limit[0], o_limit[1], o_limit[2], o_limit[3], cart_rif[index - 1]) or isInternal(41.18,
+                                                                                                                 44.23,
+                                                                                                                 19.53,
+                                                                                                                 21.49,
+                                                                                                                 cart_rif[
+                                                                                                                             index - 1]):
                     cart_rif.remove(cart_rif[index])
             index = index - 1
 
@@ -119,14 +130,15 @@ if mode == 2:
         # crea la lista di traiettorie
         for i in reversed(cart_rif):
             cart_run.append(i)
-            if i.x > o_limit[0] and i.x < o_limit[1] and i.y > o_limit[2] and i.y < o_limit[3]:
-                if len(cart_run) > 80 and len(cart_run) < 400:
+            if isInternal(o_limit[0], o_limit[1], o_limit[2], o_limit[3], i) or isInternal(41.18, 44.23, 19.53, 21.49,
+                                                                                           i):
+                if len(cart_run) > 50 and len(cart_run) < 400:
                     trajectories.append(Trajectory(cart_run, ci))
                     for i in cart_run:
                         trajectories[len(trajectories) - 1].addPoint((i.x, i.y))
                     # Filtra la traiettoria eliminando punti troppo vicini
                     trajectories[len(trajectories) - 1].clean()
-                    if len(trajectories[len(trajectories) - 1].points) < 100 or len(trajectories
+                    if len(trajectories[len(trajectories) - 1].points) < 50 or len(trajectories
                                                                                     [len(
                             trajectories) - 1].points) > 300:
                         trajectories.remove(trajectories[len(trajectories) - 1])
@@ -138,6 +150,7 @@ if mode == 2:
                     cart_run = []
 
     print(len(trajectories))
+
 
     def keypress(event):
         # Refresh del canvas
