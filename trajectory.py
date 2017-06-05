@@ -27,14 +27,20 @@ class Trajectory():
             index -= 1
 
     # filtra la corsa eliminando i punti che sono troppo vicini tra di loro
-    def clean(self, param=0.5):
+    def clean(self, param=0.9, dist=3.):
         run = self.getPoints()
-        index = len(run) - 1
-        while index > 0:
-            dist = euclid_dist(run[index], run[index - 1])
-            if dist <= param:
-                self.points.remove(run[index])
-            index -= 1
+        i = 0
+        while i < len(run) - 1:
+            ii = i + 1
+            dist_i = 0
+            while ii < len(run) - 1:
+                dist_i_ii = euclid_dist(run[i], run[ii])
+                # dist_ii = euclid_dist(run[ii-1], run[ii])
+                # dist_i += dist_ii
+                if dist_i_ii < param:
+                    self.points.remove(run[ii])
+                ii += 1
+            i += 1
 
     # filtra la corsa attraverso un filtro di Kalman - DA ELIMINARE
     def kalman_filter(self):
