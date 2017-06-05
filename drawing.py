@@ -1,4 +1,5 @@
 from Tkinter import Canvas
+from peewee_models import Aoi
 
 
 class Map(Canvas):
@@ -11,16 +12,18 @@ class Map(Canvas):
         return self.create_oval(x - r, y - r, x + r, y + r, fill=color)
 
     # Disegna il rettangolo relativo alla regione aoi sul canvas
-    def draw_aoi(self, aoi, o_limit, color):
-        self.create_rectangle(
-            aoi.p0_x * self.scale,
-            aoi.p0_y * self.scale,
-            aoi.p3_x * self.scale,
-            aoi.p3_y * self.scale,
-            fill=color
+    def draw_aois(self, o_limit, color):
+        for aoi in Aoi.select():
+            self.create_rectangle(
+                aoi.p0_x * self.scale,
+                aoi.p0_y * self.scale,
+                aoi.p3_x * self.scale,
+                aoi.p3_y * self.scale,
+                fill=color
         )
-        self.create_text((aoi.p0_x + aoi.p3_x) * self.scale / 2, (aoi.p0_y + aoi.p3_y) * self.scale / 2,
-                         text=aoi.shelf)
+            self.create_text((aoi.p0_x + aoi.p3_x) * self.scale / 2, (aoi.p0_y + aoi.p3_y) * self.scale / 2,
+                             text=aoi.shelf)
+        # Origine
         self.create_rectangle(o_limit[0] * self.scale, o_limit[2] * self.scale, o_limit[1] * self.scale, o_limit[3] *
                               self.scale, fill="white")
         self.create_text((o_limit[0] + o_limit[1]) * self.scale / 2, (o_limit[2] + o_limit[3]) * self.scale / 2,
