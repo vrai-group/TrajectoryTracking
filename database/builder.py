@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ###################################################################
-# File per la conversione di un dataset da text-file a .sqlite
+# File per la conversione di un dataset da dataset-file a .sqlite
 # e salvataggio all'interno di un DataBase File.
 ###################################################################
 
@@ -16,8 +16,8 @@ from peewee import *
 # DATASET
 
 dataset_folder = "dataset"  # Define dataset folder name
-dataset_file = "testset"  # Define dataset file name
-dataset_ext = ".txt"  # Define dataset file extention
+dataset_file = "AOIs"  # Define dataset file name
+dataset_ext = ".csv"  # Define dataset file extention
 
 ###################################################################
 
@@ -36,7 +36,8 @@ except IOError:
     print "Dataset '" + dataset_file + dataset_ext + "' does not exist inside folder '" + dataset_folder + "'"
     exit()
 
-db = SqliteDatabase(sql_filepath)
+# db = SqliteDatabase(sql_filepath)
+db = SqliteDatabase("C:\Users\user\PycharmProjects\TrajectoryTracking\database\sqlite/june.db")
 
 
 class BaseModel(Model):
@@ -59,22 +60,38 @@ class Cart(BaseModel):
     y = FloatField()
 
 
+class Aoi(BaseModel):
+    "Regioni di interesse che costituiscono la mappa"
+    shelf = IntegerField(primary_key=True)
+    p0_x = FloatField()
+    p0_y = FloatField()
+    p1_x = FloatField()
+    p1_y = FloatField()
+    p2_x = FloatField()
+    p2_y = FloatField()
+    p3_x = FloatField()
+    p3_y = FloatField()
+
+
 # Set "model" variable equal to the defined class name
-model = Cart
+# model = Cart
+model = Aoi
 
 
 def build(line):
     "Main build function. Each line is an array of values reflecting the structure of the dataset"
 
     # Do stuff
-    c_id = int(line[0])
-    c_tag_id = str(np.array(line[2]))
-    c_time_stamp = datetime.datetime.strptime(str(np.array(line[3])), "%Y-%m-%d %H:%M:%S")
-    c_x = float(line[4])
-    c_y = float(line[5])
+    # c_id = int(line[0])
+    # c_tag_id = str(np.array(line[2]))
+    # c_time_stamp = datetime.datetime.strptime(str(np.array(line[3])), "%Y-%m-%d %H:%M:%S")
+    # c_x = float(line[4])
+    #c_y = float(line[5])
 
     # Pass to the model the attributes in the form of "attribute=value"
-    return model(id=c_id, x=c_x, y=c_y, tag_id=c_tag_id, time_stamp=c_time_stamp)
+    # return model(id=c_id, x=c_x, y=c_y, tag_id=c_tag_id, time_stamp=c_time_stamp)
+    return model(shelf=line[0], p0_x=line[1], p0_y=line[2], p1_x=line[3], p1_y=line[4], p2_x=line[5], p2_y=line[6],
+                 p3_x=line[7], p3_y=line[8])
 
 
 ###################################################################
