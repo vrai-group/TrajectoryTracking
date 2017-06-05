@@ -30,6 +30,24 @@ class Map(Canvas):
                          text="ORIGINE")
         self.create_line(850, 0, 850, 680)
 
+        # Punti di controllo
+        self.create_rectangle(41.18 * self.scale, 19.53 * self.scale, 44.23 * self.scale, 21.49 *
+                              self.scale, fill="white")
+        self.create_rectangle(31.13 * self.scale, 19.53 * self.scale, 34.28 * self.scale, 21.49 *
+                              self.scale, fill="white")
+        self.create_rectangle(31.13 * self.scale, 9.55 * self.scale, 34.24 * self.scale, 12.43 *
+                              self.scale, fill="white")
+        self.create_rectangle(41.26 * self.scale, 9.55 * self.scale, 44.22 * self.scale, 12.43 *
+                              self.scale, fill="white")
+        self.create_rectangle(0.74 * self.scale, 18.74 * self.scale, 4.4 * self.scale, 22.00 *
+                              self.scale, fill="white")
+        self.create_rectangle(8.1 * self.scale, 18.74 * self.scale, 11.15 * self.scale, 22.00 *
+                              self.scale, fill="white")
+        self.create_rectangle(8.1 * self.scale, 9.08 * self.scale, 11.88 * self.scale, 12.03 *
+                              self.scale, fill="white")
+        self.create_rectangle(19.08 * self.scale, 9.08 * self.scale, 22.12 * self.scale, 11.35 *
+                              self.scale, fill="white")
+
     # Disegna una rilevazione del carrello cart scelto sul canvas
     def draw_cart(self, cart, radius, color):
         self.create_circle(cart.x * self.scale, cart.y * self.scale, radius, color)
