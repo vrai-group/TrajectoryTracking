@@ -6,8 +6,6 @@
 # e salvataggio all'interno di un DataBase File.
 ###################################################################
 
-import numpy as np
-import datetime
 import os
 
 from peewee import *
