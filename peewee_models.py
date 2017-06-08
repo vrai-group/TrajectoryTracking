@@ -1,7 +1,11 @@
 from peewee import *
 
 # Data Base File (SQLite)
-db = SqliteDatabase('database/trajectory_tracking.db')
+db = SqliteDatabase('database/sqlite/testset.db')
+
+
+# db = SqliteDatabase('database/sqlite/july1stweek.db')
+# db = SqliteDatabase('database/sqlite/june.db')
 
 class BaseModel(Model):
     class Meta:
