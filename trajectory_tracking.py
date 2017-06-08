@@ -6,201 +6,185 @@ from datetime import datetime
 
 from clustering import Clustering
 from drawing import Map
-from peewee_models import Cart
+from peewee_models import Cart, Aoi
 from trajectory import Trajectory
+
+######################
+print('Init started:')
+######################
+#######################################
+print('1) Defining global variables..')
+#######################################
 
 MAX_CLUSTERS = 10
 MAX_CLUSTERS_USER_DEFINED = False
-COLORS = ["#FF0000",  # red
-          "#00FF00",  # lime
-          "#0000FF",  # blue
-          "#FFFFFF",  # white
-          "#FFFF00",  # yellow
-          "#00FFFF",  # aqua
-          "#FF00FF",  # fuchsia
-          "#800000",  # maroon
-          "#808000",  # olive
-          "#008000",  # green
-          "#008080",  # teal
-          "#000080",  # navy
-          "#800080",  # purple
-          "#808080",  # gray
-          "#C0C0C0"]  # silver
 
-COLOR_BLACK = "#000000"
+# Area di origine
+origin = Aoi(x_min=0.1, x_max=14., y_min=28.5, y_max=35.18)
 
-# Disegna la mappa
-tkmaster = Tk(className="map")
-map = Map(tkmaster, scale=18, width=1100, height=640)
-map.pack(expand=YES, fill=BOTH, side="left")
+# Aree di controllo
+controls = {
+    "c1": Aoi(x_min=41.18, x_max=44.23, y_min=19.53, y_max=21.49),
+    "c2": Aoi(x_min=31.13, x_max=34.28, y_min=19.53, y_max=21.49),
+    "c3": Aoi(x_min=31.13, x_max=34.24, y_min=9.55, y_max=12.43),
+    "c4": Aoi(x_min=41.26, x_max=44.22, y_min=9.55, y_max=12.43),
+    "c5": Aoi(x_min=0.74, x_max=4.4, y_min=18.74, y_max=22.00),
+    "c6": Aoi(x_min=8.1, x_max=11.15, y_min=18.74, y_max=22.00),
+    "c7": Aoi(x_min=8.1, x_max=11.88, y_min=9.08, y_max=12.03),
+    "c8": Aoi(x_min=19.08, x_max=22.12, y_min=9.08, y_max=11.35)
+}
 
-o_limit = [0.1, 14., 28.5, 35.18]  # limiti della regione di origine: [Xmin, Xmax, Ymin, Ymax]
-# Disegna le AOIs sul canvas
-map.draw_aois(o_limit, color=COLORS[2])
-
-# Lista contenente gli id dei carrelli del supermercato (16 per il testset)
-carts_id = []
-for i in Cart.select():
-    if i.tag_id not in carts_id:
-        carts_id.append(str(i.tag_id))
-
-# Parametro: cart id
-cart_tag_id = carts_id[13]  # [10] -> "0x00205EFE0E93"
-
-cart_array = []
 # Lista delle traiettorie
 trajectories = []
-# list of the clusters of trajectories
-clust = Clustering()
+t = 0
+# Lista dei cluster delle traiettorie
+clusters = Clustering()
 
-ci = 0  # cluster index (for painting)
-newT = True  # Flag - a new trajectory being created
+# cluster-index (per il disegno)
+ci = 0
+# Flag - a new trajectory being created
+newT = True
 
-# mode = input("Inserire la modalità: \n1 - orario\n2 - trajectories\n")
-mode = 2  # <- da modificare per selezionare la modalità
+###########################
+print('2) Drawing the map')
+###########################
 
-# MODE : ORARIO || TEST SECTION (da eliminare alla fine dei test)
-if mode == 1:
-    # Parametri
-    dd1 = 9
-    mm1 = 7
-    yy1 = 2016
-    h1 = 9
-    m1 = 45
-    s1 = 0
-    dd2 = 9
-    mm2 = 7
-    yy2 = 2016
-    h2 = 10
-    m2 = 0
-    s2 = 0
+# Inizializza la mappa
+tkmaster = Tk(className="map")
+map = Map(tkmaster, scale=18, width=1100, height=640)
+map.pack(expand=True, fill="both", side="right")
 
-    cart_array = Cart.select().order_by(Cart.time_stamp.asc()) \
-        .where(Cart.tag_id == cart_tag_id) \
-        .where(Cart.time_stamp > datetime(day=dd1, month=mm1, year=yy1, hour=h1, minute=m1, second=s1)) \
-        .where(Cart.time_stamp < datetime(day=dd2, month=mm2, year=yy2, hour=h2, minute=m2, second=s2))
+# Disegna la mappa
+map.draw_init(Aoi.select(), origin, controls)
 
-    cart_rif = []  # lista di riferimento relativa a cart_array
-    for i in cart_array:
-        cart_rif.append(i)
-    trajectories.append(Trajectory(cart_rif, ci))
-    for i in cart_array:
-        trajectories[len(trajectories) - 1].addPoint((i.x, i.y))
-    # Filtra la traiettoria eliminando punti troppo vicini
-    trajectories[len(trajectories) - 1].clean()
-    # Filtra la traiettoria attraverso un filtro di Kalman
-    trajectories[len(trajectories) - 1].filter()
-    # Setta la lunghezza della corsa
-    trajectories[len(trajectories) - 1].setPrefixSum()
-    # Disegna la traiettoria
-    trajectories[len(trajectories) - 1].draw(widget=map, color=COLORS[4])
+###########################
+print('3) Selecting carts')
+###########################
 
-# MODE: salva tutte le corse nella lista trajectories
-def isInternal(xmin, xmax, ymin, ymax, var):
-    if var.x > xmin and var.x < xmax and var.y > ymin and var.y < ymax:
-        return True
-    else:
-        return False
-if mode == 2:
-    for id in carts_id:
-        cart_array = Cart.select().order_by(Cart.time_stamp.desc()) \
-            .where(Cart.tag_id == id)
-        cart_rif = []  # lista di riferimento relativa a cart_array
-        for i in cart_array:
-            cart_rif.append(i)
+# Preleva la lista dei singoli carrelli (len(carts_id) = 16)
+carts = Cart.select().group_by(Cart.tag_id)
 
-        # la lista cart_rif ha tutte le corse che iniziano con un punto interno all'origine e finiscono con uno esterno
-        index = len(cart_rif) - 1
-        while index > 0:
-            if isInternal(o_limit[0], o_limit[1], o_limit[2], o_limit[3], cart_rif[index]) or isInternal(41.18, 44.23,
-                                                                                                         19.53, 21.49,
-                                                                                                         cart_rif[
-                                                                                                             index]):
-                if isInternal(o_limit[0], o_limit[1], o_limit[2], o_limit[3], cart_rif[index - 1]) or isInternal(41.18,
-                                                                                                                 44.23,
-                                                                                                                 19.53,
-                                                                                                                 21.49,
-                                                                                                                 cart_rif[
-                                                                                                                             index - 1]):
-                    cart_rif.remove(cart_rif[index])
-            index = index - 1
+##########################
+print('Init completed!\n')
+##########################
 
-        cart_run = []
-
-        # crea la lista di traiettorie
-        for i in reversed(cart_rif):
-            cart_run.append(i)
-            if isInternal(o_limit[0], o_limit[1], o_limit[2], o_limit[3], i) or isInternal(41.18, 44.23, 19.53, 21.49,
-                                                                                           i):
-                if len(cart_run) > 50 and len(cart_run) < 400:
-                    trajectories.append(Trajectory(cart_run, ci))
-                    for i in cart_run:
-                        trajectories[len(trajectories) - 1].addPoint((i.x, i.y))
-                    # Filtra la traiettoria eliminando punti troppo vicini
-                    trajectories[len(trajectories) - 1].clean()
-                    if len(trajectories[len(trajectories) - 1].points) < 50 or len(trajectories
-                                                                                    [len(
-                            trajectories) - 1].points) > 300:
-                        trajectories.remove(trajectories[len(trajectories) - 1])
-                    else:
-                        # Filtra la traiettoria attraverso un filtro di Kalman
-                        trajectories[len(trajectories) - 1].filter()
-                        # Setta la lunghezza della corsa
-                        trajectories[len(trajectories) - 1].setPrefixSum()
-                    cart_run = []
-
-    print(len(trajectories))
+########################################
+print('Legend: (keys)')
+print('1: Compute trajectories')
+print('2: Draw single trajectory')
+print('3: Draw all trajectories (may require a few seconds)\n')
 
 
-    def keypress(event):
-        # Refresh del canvas
-        map.delete(ALL)
-        map.draw_aois(o_limit, color=COLORS[2])
-        # Disegna la traiettoria
-        if len(trajectories) > 0:
-            trajectories[0].draw(widget=map, color=COLORS[0])
-            trajectories.remove(trajectories[0])
-
-
-    def clusterTrajectoriesAgglomerative(event):
-        # perform clustering
-        clust.clusterAgglomerartive(trajectories, MAX_CLUSTERS)
-
-        # Refresh del canvas
-        map.delete(ALL)
-        map.draw_aois(o_limit, color=COLORS[2])
-
-        # draw colored trajectories
-        for t in trajectories:
-            t.draw(map, COLORS[t.getClusterIdx()])
-
-
-    def clusterTrajectoriesSpectral(event):
-        # perform clustering
-        # if MAX_CLUSTERS_USER_DEFINED:
-        #    clust.clusterSpectral(trajectories, MAX_CLUSTERS)
-        # else:
-        clust.clusterSpectral(trajectories)
-
-        # Refresh del canvas
-        map.delete(ALL)
-        map.draw_aois(o_limit, color=COLORS[2])
-
-        # draw colored trajectories
-        for t in trajectories:
-            t.draw(map, COLORS[t.getClusterIdx()])
-
-
-    # Command line parsing
-    if (len(sys.argv) == 2):
-        MAX_CLUSTERS = int(sys.argv[1])
-        MAX_CLUSTERS_USER_DEFINED = True
-
-
-    tkmaster.bind("a", keypress)
-    tkmaster.bind('d', clusterTrajectoriesAgglomerative)
-    tkmaster.bind('s', clusterTrajectoriesSpectral)
+########################################
 
 ########################################################################################################################
+#                                                   FUNCTIONS                                                          #
+########################################################################################################################
+
+def compute_trajectories(event):
+    n_cart = 0
+    # Per ogni tipo di carrello
+    for cart in carts:
+        n_cart += 1
+        print("Computing cart trajectories: " + str(n_cart) + " of " + str(carts.count()) + "..")
+
+        # Preleva tutte le istanze del carrello ordinate rispetto al tempo
+        instances = list(Cart.select().order_by(Cart.time_stamp.desc()).where(Cart.tag_id == cart.tag_id))
+
+        # Divide tutte le istanze in traiettorie che iniziano e finiscono nell'origine
+        # e costruisce un array di traiettorie complete per il carrello in esame.
+        # NB: se l'ultima corsa non raggiunge l'origine, non viene considerata.
+        min_run_length = 30
+        begin = 0
+        is_run_started = False
+        i = 0
+        cart_trajectories = []
+        for instance in instances:
+            if (not instance.inside(origin) and is_run_started) or (instance.inside(origin) and not is_run_started):
+                pass
+            else:
+                if not instance.inside(origin) and not is_run_started:
+                    # Avvia la corsa
+                    is_run_started = True
+                    begin = i
+                else:
+                    # Interrompe la corsa e salva la traiettoria
+                    is_run_started = False
+                    run = instances[begin:i]
+                    if len(run) > min_run_length:
+                        trajectory = Trajectory(run, ci)
+                        # Pulisce la traiettoria
+                        trajectory.clean()
+                        # Aggiunge la traiettoria alla lista
+                        trajectories.append(trajectory)
+                        # Filtra la traiettoria attraverso un filtro di Kalman
+                        # trajectory.filter()
+            i += 1
+
+    print("Computing trajectories: finished.\n")
+
+
+def draw_single_trajectory(event):
+    map.draw_init(Aoi.select(), origin, controls)
+    global t, len
+    if len(trajectories) > 0:
+        map.draw_trajectory(trajectories[t % len(trajectories)], color="red")
+        if t < len(trajectories):
+            t += 1
+        else:
+            t = 0
+    else:
+        print "Error: No trajectories computed.\n"
+
+
+def draw_all_trajectories(event):
+    map.draw_init(Aoi.select(), origin, controls)
+    for trajectory in trajectories:
+        map.draw_trajectory(trajectory, color="red")
+    if len(trajectories) == 0:
+        print "Error: No trajectories computed.\n"
+
+
+def cluster_trajectories_agglomerative(event):
+    pass
+    # perform clustering
+    # clusters.clusterAgglomerartive(trajectories, MAX_CLUSTERS)
+
+    # Refresh del canvas
+    # map.delete(ALL)
+    # map.draw_aoi(origin, color="blue")
+
+    # draw colored trajectories
+    # for t in trajectories:
+    #   t.draw(map, COLORS[t.getClusterIdx()])
+
+
+def cluster_trajectories_spectral(event):
+    pass
+    # perform clustering
+    # if MAX_CLUSTERS_USER_DEFINED:
+    #    clust.clusterSpectral(trajectories, MAX_CLUSTERS)
+    # else:
+    # clusters.clusterSpectral(trajectories)
+
+    # Refresh del canvas
+    # map.delete(ALL)
+    # map.draw_aoi(origin, color=COLORS["blue"])
+
+    # draw colored trajectories
+    # for t in trajectories:
+    #    t.draw(map, COLORS[t.getClusterIdx()])
+
+    # Command line parsing
+    # if (len(sys.argv) == 2):
+    #    MAX_CLUSTERS = int(sys.argv[1])
+    #   MAX_CLUSTERS_USER_DEFINED = True
+
+
+########################################################################################################################
+
+tkmaster.bind("1", compute_trajectories)
+tkmaster.bind("2", draw_single_trajectory)
+tkmaster.bind("3", draw_all_trajectories)
 
 mainloop()
