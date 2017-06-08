@@ -9,15 +9,11 @@ class BaseModel(Model):
 
 class Aoi(BaseModel):
     "Regioni di interesse che costituiscono la mappa"
-    shelf = IntegerField(primary_key=True)
-    p0_x = FloatField()
-    p0_y = FloatField()
-    p1_x = FloatField()
-    p1_y = FloatField()
-    p2_x = FloatField()
-    p2_y = FloatField()
-    p3_x = FloatField()
-    p3_y = FloatField()
+    id = IntegerField(primary_key=True)
+    x_min = FloatField()
+    x_max = FloatField()
+    y_min = FloatField()
+    y_max = FloatField()
 
 class Cart(BaseModel):
     "Istanze che descrivono la posizione di un carrello"
@@ -26,3 +22,6 @@ class Cart(BaseModel):
     time_stamp = DateTimeField()
     x = FloatField()
     y = FloatField()
+
+    def inside(self, aoi):
+        return self.x > aoi.x_min and self.x < aoi.x_max and self.y > aoi.y_min and self.y < aoi.y_max
