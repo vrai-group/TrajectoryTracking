@@ -36,15 +36,14 @@ except IOError:
     print "Dataset '" + dataset_file + dataset_ext + "' does not exist inside folder '" + dataset_folder + "'"
     exit()
 
-# db = SqliteDatabase(sql_filepath)
-db = SqliteDatabase("C:\Users\user\PycharmProjects\TrajectoryTracking\database\sqlite/june.db")
-
+# IF YOU NEED TO BUILD A SINGLE DB CONTAINING ALL YOUR TABLES, YOU MAY
+# REPLACE THE VARIABLE sql_filepath WITH A STRING CONTAINING THE STATIC FILE PATH
+# OF YOUR SQL .DB FILE. THIS WILL PREVENT FROM CREATING A BRAND NEW .DB FILE.
+db = SqliteDatabase(sql_filepath)
 
 class BaseModel(Model):
     class Meta:
         database = db
-
-
 ###################################################################
 ###################################################################
 # MODEL
@@ -52,31 +51,17 @@ class BaseModel(Model):
 # Define the class from which to create the model (note: must extend "BaseModel")
 
 # example
-class Cart(BaseModel):
-    id = IntegerField(primary_key=True)
-    tag_id = CharField()
-    time_stamp = DateTimeField()
-    x = FloatField()
-    y = FloatField()
-
-
 class Aoi(BaseModel):
     "Regioni di interesse che costituiscono la mappa"
-    shelf = IntegerField(primary_key=True)
-    p0_x = FloatField()
-    p0_y = FloatField()
-    p1_x = FloatField()
-    p1_y = FloatField()
-    p2_x = FloatField()
-    p2_y = FloatField()
-    p3_x = FloatField()
-    p3_y = FloatField()
-
+    id = IntegerField(primary_key=True)
+    x_min = FloatField()
+    x_max = FloatField()
+    y_min = FloatField()
+    y_max = FloatField()
 
 # Set "model" variable equal to the defined class name
 # model = Cart
 model = Aoi
-
 
 def build(line):
     "Main build function. Each line is an array of values reflecting the structure of the dataset"
@@ -90,9 +75,7 @@ def build(line):
 
     # Pass to the model the attributes in the form of "attribute=value"
     # return model(id=c_id, x=c_x, y=c_y, tag_id=c_tag_id, time_stamp=c_time_stamp)
-    return model(shelf=line[0], p0_x=line[1], p0_y=line[2], p1_x=line[3], p1_y=line[4], p2_x=line[5], p2_y=line[6],
-                 p3_x=line[7], p3_y=line[8])
-
+    return model(id=line[0], x_min=line[1], x_max=line[3], y_min=line[2], y_max=line[6])
 
 ###################################################################
 ###################################################################
