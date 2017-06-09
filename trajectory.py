@@ -165,6 +165,5 @@ if __name__ == "__main__":
 
 # calcola la distanza euclidea tra due punti p1 e p2
 def euclid_dist(p1, p2):
-    # return sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
     assert (len(p1) == len(p2))
     return sqrt(sum([((p1[i] - p2[i])) ** 2 for i in range(len(p1))]))
