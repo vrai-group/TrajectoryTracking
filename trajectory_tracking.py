@@ -18,6 +18,23 @@ print('1) Defining global variables..')
 
 MAX_CLUSTERS = 10
 MAX_CLUSTERS_USER_DEFINED = False
+COLORS = ["#FF0000",  # red
+          "#00FF00",  # lime
+          "#0000FF",  # blue
+          "#FFFFFF",  # white
+          "#FFFF00",  # yellow
+          "#00FFFF",  # aqua
+          "#FF00FF",  # fuchsia
+          "#800000",  # maroon
+          "#808000",  # olive
+          "#008000",  # green
+          "#008080",  # teal
+          "#000080",  # navy
+          "#800080",  # purple
+          "#808080",  # gray
+          "#C0C0C0"]  # silver
+
+COLOR_BLACK = "#000000"
 
 # Area di origine
 origin = Aoi(x_min=0.1, x_max=14., y_min=28.5, y_max=35.18)
@@ -72,7 +89,9 @@ print('Init completed!\n')
 print('Legend: (keys)')
 print('1: Compute trajectories')
 print('2: Draw single trajectory')
-print('3: Draw all trajectories (may require a few seconds)\n')
+print('3: Draw all trajectories (may require a few seconds)')
+print('4: Agglomerative Clustering of Trajectories (may require a few seconds)')
+print('5: Spectral Clustering of Trajectories (may require a few seconds)\n')
 
 
 ########################################
@@ -94,16 +113,24 @@ def compute_trajectories(event):
         # Divide tutte le istanze in traiettorie che iniziano e finiscono nell'origine
         # e costruisce un array di traiettorie complete per il carrello in esame.
         # NB: se l'ultima corsa non raggiunge l'origine, non viene considerata.
-        min_run_length = 30
+
+        # TODO: aggiungere condizioni per le aree di controllo
+
+        min_run_length = 120
+        max_run_length = 200
         begin = 0
         is_run_started = False
         i = 0
         cart_trajectories = []
         for instance in instances:
-            if (not instance.inside(origin) and is_run_started) or (instance.inside(origin) and not is_run_started):
+            if (not instance.inside(origin) and not instance.inside(controls["c1"]) and not instance.inside(
+                    controls["c8"]) and is_run_started) or (instance.inside(origin) and not is_run_started) or (
+                        instance.inside(controls["c1"]) and not is_run_started) or (
+                        instance.inside(controls["c8"]) and not is_run_started):
                 pass
             else:
-                if not instance.inside(origin) and not is_run_started:
+                if not instance.inside(origin) and not instance.inside(controls["c1"]) and not instance.inside(
+                        controls["c8"]) and not is_run_started:
                     # Avvia la corsa
                     is_run_started = True
                     begin = i
@@ -111,7 +138,7 @@ def compute_trajectories(event):
                     # Interrompe la corsa e salva la traiettoria
                     is_run_started = False
                     run = instances[begin:i]
-                    if len(run) > min_run_length:
+                    if len(run) > min_run_length and len(run) < max_run_length:
                         trajectory = Trajectory(run, ci)
                         # Pulisce la traiettoria
                         trajectory.clean()
@@ -121,7 +148,8 @@ def compute_trajectories(event):
                         # trajectory.filter()
             i += 1
 
-    print("Computing trajectories: finished.\n")
+    print("Computing trajectories: finished.")
+    print("Number of trajectories: " + str(len(trajectories)) + "\n")
 
 
 def draw_single_trajectory(event):
@@ -146,34 +174,26 @@ def draw_all_trajectories(event):
 
 
 def cluster_trajectories_agglomerative(event):
-    pass
     # perform clustering
-    # clusters.clusterAgglomerartive(trajectories, MAX_CLUSTERS)
-
-    # Refresh del canvas
-    # map.delete(ALL)
-    # map.draw_aoi(origin, color="blue")
-
+    clusters.clusterAgglomerartive(trajectories, MAX_CLUSTERS)
+    # Canvas refresh
+    map.draw_init(Aoi.select(), origin, controls)
     # draw colored trajectories
-    # for t in trajectories:
-    #   t.draw(map, COLORS[t.getClusterIdx()])
+    for t in trajectories:
+        map.draw_trajectory(t, COLORS[t.getClusterIdx()])
 
 
 def cluster_trajectories_spectral(event):
-    pass
     # perform clustering
-    # if MAX_CLUSTERS_USER_DEFINED:
-    #    clust.clusterSpectral(trajectories, MAX_CLUSTERS)
-    # else:
-    # clusters.clusterSpectral(trajectories)
-
-    # Refresh del canvas
-    # map.delete(ALL)
-    # map.draw_aoi(origin, color=COLORS["blue"])
-
+    if MAX_CLUSTERS_USER_DEFINED:
+        clusters.clusterSpectral(trajectories, MAX_CLUSTERS)
+    else:
+        clusters.clusterSpectral(trajectories)
+    # Canvas refresh
+    map.draw_init(Aoi.select(), origin, controls)
     # draw colored trajectories
-    # for t in trajectories:
-    #    t.draw(map, COLORS[t.getClusterIdx()])
+    for t in trajectories:
+        map.draw_trajectory(t, COLORS[t.getClusterIdx()])
 
     # Command line parsing
     # if (len(sys.argv) == 2):
@@ -186,5 +206,7 @@ def cluster_trajectories_spectral(event):
 tkmaster.bind("1", compute_trajectories)
 tkmaster.bind("2", draw_single_trajectory)
 tkmaster.bind("3", draw_all_trajectories)
+tkmaster.bind("4", cluster_trajectories_agglomerative)
+tkmaster.bind("5", cluster_trajectories_spectral)
 
 mainloop()
