@@ -162,7 +162,8 @@ class Clustering:
         points given as  tuples (x, y).
         clusters - A number of clusters. If the value is not specified, the
         algorithm estimates the best number itself
-        output: /
+        output:
+        g - Number of Centroids
         The function performs spectral clustering of trajectories
         and for each trajectory sets an index t.ci denoting estimated cluster.
         the function estimates the number of resulting clusters automatically.
@@ -249,6 +250,8 @@ class Clustering:
 
         for trajLab in zip(trajectories, labels):
             trajLab[0].setClusterIdx(trajLab[1])
+
+        return g
 
 
 # Testing the module
