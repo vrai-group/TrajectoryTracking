@@ -19,18 +19,21 @@ _Note 2: You don't have to edit anything, excepts the "DATASET" and "MODEL" sect
 Preliminarily, the collected data within the database are extracted and analyzed to remove the unacceptable positions (usually, the ones outside the bounds of the map). Subsequently, the positions are made use for identifying the actual trajectories: we have identified as a trajectorys a run that begins and ends within the same area, called origin "origin area" (or, simply, "origin").
 
 ### 3) Filtering
-...
+* Positions out-of-bounds:
+* Densities of points:
+* Kalman filter: (?)
 
-### 3) Clustering
-...
+### 4) Clustering
+* Agglomerative:
+* Spectral:
 
 ## Install and run
 ...
 
 ## Dependencies
-* Tkinter
-* Peewee 2.10.1
-* Filterpy 0.1.5
+* tkinter
+* peewee 2.10.1
+* filterpy 0.1.5
 
 ## Authors
 * Matteo Camerlengo | [GitHub](https://github.com/MatteoCamerlengo)
