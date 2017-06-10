@@ -112,7 +112,7 @@ class Clustering:
 
         return 1.0 / (dist / float(tlen) + 1e-6)
 
-    def clusterAgglomerartive(self, trajectories, cn):
+    def clusterAgglomerative(self, trajectories, cn):
         """
         input: A list 'trajectories' of trajectories given as lists of
         objects of class Trajectory. The number of desired clusters 'nc'.
@@ -223,8 +223,6 @@ class Clustering:
             # Best number of centroids.
             g = gMin + np.argmin(rhog)
 
-        print("Number of centroids = %d" % g)
-
         # Prerfofm classification of trajectories using k-means clustering
         V = np.copy(Evec[:, 0:g])
         S = np.diag(1.0 / np.sqrt(np.sum(np.multiply(V, V), 1)))
@@ -262,6 +260,6 @@ if __name__ == "__main__":
              [(14.0, -7.0), (12.0, -4.5), (10.0, -2.0), (8.0, 0.5)]]
 
     clust = Clustering()
-    res = clust.clusterAgglomerartive(trajs, 2)
+    res = clust.clusterAgglomerative(trajs, 2)
 
     print(res)

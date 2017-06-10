@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from Tkinter import *
-from datetime import datetime
 
 from clustering import Clustering
 from drawing import Map
@@ -18,37 +17,22 @@ print('1) Defining global variables..')
 
 MAX_CLUSTERS = 8
 MAX_CLUSTERS_USER_DEFINED = False
-COLORS = ["#FF0000",  # red
-          "#00FF00",  # lime
-          "#0000FF",  # blue
-          "#FFFF00",  # yellow
-          "#008000",  # green
-          "#00FFFF",  # aqua
-          "#FF00FF",  # fuchsia
-          "#800000",  # maroon
-          "#808000",  # olive
-          "#008080",  # teal
-          "#000080",  # navy
-          "#800080",  # purple
-          "#808080",  # gray
-          "#FFFFFF",  # white
-          "#C0C0C0"]  # silver
 
-COLOR_NAMES = ["red",
-               "lime",
-               "blue",
-               "yellow",
-               "green",
-               "aqua",
-               "fuchsia",
-               "maroon",
-               "olive",
-               "teal",
-               "navy",
-               "purple",
-               "gray",
-               "white",
-               "silver"]
+colors = {"red": "#FF0000",
+          "lime": "#00FF00",
+          "blue": "#0000FF",
+          "yellow": "#FFFF00",
+          "green": "#008000",
+          "aqua": "#00FFFF",
+          "fuchsia": "#FF00FF",
+          "maroon": "#800000",
+          "olive": "#808000",
+          "teal": "#008080",
+          "navy": "#000080",
+          "purple": "#800080",
+          "gray": "#808080",
+          "white": "#FFFFFF",
+          "silver": "#C0C0C0"}
 
 COLOR_BLACK = "#000000"
 
@@ -107,10 +91,11 @@ print('Init completed!\n')
 print('Legend: (keys)')
 print('1: Compute trajectories')
 print('2: Draw single trajectory')
-print('3: Draw all trajectories (may require a few seconds)')
-print('4: Agglomerative Clustering of Trajectories (may require a few seconds)')
-print('5: Spectral Clustering of Trajectories (may require a few seconds)')
-print('6: Draw Trajectories grouped by Cluster')
+print('3: Draw all trajectories [may take a few seconds]')
+print('4: Clustering (agglomerative) [may take a few seconds]')
+print('5: Clustering (spectral) [may take a few seconds]')
+print('6: Draw single cluster')
+print('7: Draw all clusters')
 print('r: Reset\n')
 
 ########################################
@@ -120,6 +105,8 @@ print('r: Reset\n')
 ########################################################################################################################
 
 def compute_trajectories(event):
+    print('>> 1: Compute trajectories')
+
     global t, ntc
     t = 0
     ntc = []
@@ -127,6 +114,7 @@ def compute_trajectories(event):
     trajectories[:] = []
     # Per ogni tipo di carrello
     for cart in carts:
+        # ProgressBar
         print("Progress: " + '{0:.3g}'.format(100 * (float(n_cart) / float(carts.count()))) + "%")
 
         # Preleva tutte le istanze del carrello ordinate rispetto al tempo,
@@ -141,8 +129,6 @@ def compute_trajectories(event):
         # Divide tutte le istanze in traiettorie che iniziano e finiscono nell'origine
         # e costruisce un array di traiettorie complete per il carrello in esame.
         # NB: se l'ultima corsa non raggiunge l'origine, non viene considerata.
-
-        # TODO: aggiungere condizioni per le aree di controllo
 
         min_run_length = 80
         max_run_length = 150
@@ -191,6 +177,8 @@ def compute_trajectories(event):
 
 
 def draw_single_trajectory(event):
+    print('>> 2: Draw single trajectory')
+
     map.draw_init(Aoi.select(), origin, controls)
     global t, len
     if len(trajectories) > 0:
@@ -204,6 +192,8 @@ def draw_single_trajectory(event):
 
 
 def draw_all_trajectories(event):
+    print('>> 3: Draw all trajectories (may take a few seconds)')
+
     map.draw_init(Aoi.select(), origin, controls)
     for trajectory in trajectories:
         map.draw_trajectory(trajectory, color="red")
@@ -212,68 +202,86 @@ def draw_all_trajectories(event):
 
 
 def cluster_trajectories_agglomerative(event):
+    print('>> 4: Clustering (agglomerative)')
+
     global cluster_index, ntc
     cluster_index = 0
+
     if len(trajectories) == 0:
         print("Error: No trajectories computed.\n")
     else:
-        print("Wait for a few seconds..\n")
-        # perform clustering
-        clusters.clusterAgglomerartive(trajectories, MAX_CLUSTERS)
-        # Canvas refresh
-        map.draw_init(Aoi.select(), origin, controls)
-        # draw colored trajectories
+        print("Clustering..\n")
+
+        # Clustering
+        clusters.clusterAgglomerative(trajectories, MAX_CLUSTERS)
+
+        # Calcola il numero di traiettorie per cluster
         ntc = [0] * MAX_CLUSTERS
         for t in trajectories:
-            map.draw_trajectory(t, COLORS[t.getClusterIdx()])
             ntc[t.getClusterIdx()] += 1
-        print("Agglomerative clustering:")
+        print("Clusters:")
         for i in range(MAX_CLUSTERS):
-            if ntc[i] != 0:
-                print(str(ntc[i]) + " " + COLOR_NAMES[i] + " trajectories")
+            if ntc[i] > 0:
+                print("- " + str(ntc[i]) + " " + colors.keys()[i])
         print("")
 
 
-
 def cluster_trajectories_spectral(event):
-    global cluster_index, ntc
+    print('>> 5: Clustering (spectral)')
+
+    global cluster_index, ntc, g
     cluster_index = 0
+
     if len(trajectories) == 0:
         print("Error: No trajectories computed.\n")
     else:
-        print("Wait for a few seconds..\n")
-        # perform clustering
+        print("Clustering..\n")
+
+        # Clustering
         if MAX_CLUSTERS_USER_DEFINED:
             clusters.clusterSpectral(trajectories, MAX_CLUSTERS)
         else:
             g = clusters.clusterSpectral(trajectories)
+
         # Canvas refresh
         map.draw_init(Aoi.select(), origin, controls)
-        # draw colored trajectories
+
+        # Calcola il numero di traiettorie per cluster
         ntc = [0] * g
         for t in trajectories:
-            map.draw_trajectory(t, COLORS[t.getClusterIdx()])
             ntc[t.getClusterIdx()] += 1
-        print("Spectral clustering:")
+        print("Clusters:")
         for i in range(g):
-            if ntc[i] != 0:
-                print(str(ntc[i]) + " " + COLOR_NAMES[i] + " trajectories")
+            if ntc[i] > 0:
+                print("- " + str(ntc[i]) + " " + colors.keys()[i])
         print("")
 
 
-def draw_cluster_trajectories(event):
+def draw_single_cluster(event):
+    print('>> 6: Draw single cluster:')
+
     global cluster_index, ntc
-    if len(trajectories) == 0 or len(ntc) == 0:
+    if len(trajectories) == 0:
         print "Error: No trajectories computed.\n"
+    if len(ntc) == 0:
+        print "Error: No cluster computed.\n"
     else:
         map.draw_init(Aoi.select(), origin, controls)
         for trajectory in trajectories:
             if trajectory.getClusterIdx() == cluster_index:
-                map.draw_trajectory(trajectory, color=COLORS[cluster_index])
+                map.draw_trajectory(trajectory, color=colors[cluster_index])
         if cluster_index < len(ntc) - 1:
             cluster_index += 1
         else:
             cluster_index = 0
+
+
+def draw_all_clusters(event):
+    print('>> 7: Draw all clusters:')
+    map.draw_init(Aoi.select(), origin, controls)
+
+    for t in trajectories:
+        map.draw_trajectory(t, colors.values()[t.getClusterIdx()])
 
 
 def reset(event):
@@ -284,7 +292,7 @@ def reset(event):
     Trajectory.resetGlobID()
     # Canvas refresh
     map.draw_init(Aoi.select(), origin, controls)
-    print("Reset executed.\n")
+    print(">> Reset executed.\n")
 
 
 # Command line parsing
@@ -299,7 +307,8 @@ tkmaster.bind("2", draw_single_trajectory)
 tkmaster.bind("3", draw_all_trajectories)
 tkmaster.bind("4", cluster_trajectories_agglomerative)
 tkmaster.bind("5", cluster_trajectories_spectral)
-tkmaster.bind("6", draw_cluster_trajectories)
+tkmaster.bind("6", draw_single_cluster)
+tkmaster.bind("7", draw_all_clusters)
 tkmaster.bind("r", reset)
 
 mainloop()
