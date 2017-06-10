@@ -257,7 +257,6 @@ def cluster_trajectories_spectral(event):
 
 
 def draw_single_cluster(event):
-    print('>> 6: Draw single cluster:')
 
     global cluster_index, ntc
     if len(trajectories) == 0:
@@ -279,7 +278,6 @@ def draw_single_cluster(event):
 
 
 def draw_all_clusters(event):
-    print('>> 7: Draw all clusters:')
     map.draw_init(Aoi.select(), origin, controls)
 
     for t in trajectories:
