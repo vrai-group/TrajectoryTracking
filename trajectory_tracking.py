@@ -121,7 +121,6 @@ def compute_trajectories(event):
         begin = 0
         is_run_started = False
         i = 0
-        cart_trajectories = []
         for instance in instances:
             if (not instance.inside(origin) and not instance.inside(controls["c1"]) and not instance.inside(
                     controls["c8"]) and is_run_started) or (instance.inside(origin) and not is_run_started) or (
