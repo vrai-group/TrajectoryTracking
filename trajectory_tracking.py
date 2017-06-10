@@ -139,11 +139,17 @@ def compute_trajectories(event):
         for instance in instances:
             if (not instance.inside(origin) and not instance.multinside(controls) and is_run_started) \
                     or (instance.inside(origin) and not is_run_started) \
-                    or (instance.multinside(controls) and not is_run_started):
+                    or (instance.inside(controls["c1"]) and not is_run_started) \
+                    or (instance.inside(controls["c3"]) and not is_run_started) \
+                    or (instance.inside(controls["c5"]) and not is_run_started) \
+                    or (instance.inside(controls["c7"]) and not is_run_started):
                 pass
             else:
-                if not instance.inside(origin) and not instance.multinside(controls["c1"]) \
-                        and not is_run_started:
+                if not instance.inside(origin) \
+                        and not instance.inside(controls["c1"]) \
+                        and not instance.inside(controls["c3"]) \
+                        and not instance.inside(controls["c5"]) \
+                        and not instance.inside(controls["c7"]) and not is_run_started:
                     # Avvia la corsa
                     is_run_started = True
                     begin = i
@@ -205,9 +211,6 @@ def cluster_trajectories_agglomerative(event):
         # Clustering
         clusters.clusterAgglomerative(trajectories, MAX_CLUSTERS)
 
-        # Canvas refresh
-        map.draw_init(Aoi.select(), origin, controls)
-
         # Calcola il numero di traiettorie per cluster
         ntc = [0] * MAX_CLUSTERS
         for t in trajectories:
@@ -215,8 +218,7 @@ def cluster_trajectories_agglomerative(event):
         print("Clusters:")
         for i in range(MAX_CLUSTERS):
             if ntc[i] > 0:
-                perc = float(ntc[i]) / float(len(trajectories)) * 100
-                print("- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[i] + "(" + str(ntc[i]) + ")")
+                print("- " + str(ntc[i]) + " " + colors.keys()[i])
         print("")
 
 
@@ -233,7 +235,7 @@ def cluster_trajectories_spectral(event):
 
         # Clustering
         if MAX_CLUSTERS_USER_DEFINED:
-            g = clusters.clusterSpectral(trajectories, MAX_CLUSTERS)
+            clusters.clusterSpectral(trajectories, MAX_CLUSTERS)
         else:
             g = clusters.clusterSpectral(trajectories)
 
@@ -244,7 +246,6 @@ def cluster_trajectories_spectral(event):
         ntc = [0] * g
         for t in trajectories:
             ntc[t.getClusterIdx()] += 1
-
         print("Clusters:")
 
         for i in range(g):
@@ -267,22 +268,10 @@ def draw_single_cluster(event):
     print('>> 6: Draw single cluster:')
 
     global cluster_index, ntc
-
     if len(trajectories) == 0:
         print "Error: No trajectories computed.\n"
     if len(ntc) == 0:
         print "Error: No cluster computed.\n"
-    else:
-        map.draw_init(Aoi.select(), origin, controls)
-
-        for trajectory in trajectories:
-            if trajectory.getClusterIdx() == cluster_index:
-                map.draw_trajectory(trajectory, color=colors[cluster_index])
-
-        if cluster_index < len(ntc) - 1:
-            cluster_index += 1
-        else:
-            cluster_index = 0
     else:
         if len(ntc) == 0:
             print "Error: No cluster computed.\n"
@@ -299,22 +288,16 @@ def draw_single_cluster(event):
 
 def draw_all_clusters(event):
     print('>> 7: Draw all clusters:')
+    map.draw_init(Aoi.select(), origin, controls)
 
-    global ntc
-    if len(ntc) == 0:
-        print "Error: No cluster computed.\n"
-    else:
-        # Canvas refresh
-        map.draw_init(Aoi.select(), origin, controls)
-        for t in trajectories:
-            map.draw_trajectory(t, colors.values()[t.getClusterIdx()])
+    for t in trajectories:
+        map.draw_trajectory(t, colors.values()[t.getClusterIdx()])
 
 
 def reset(event):
-    global t, cluster_index, ntc
+    global t, cluster_index
     t = 0
     cluster_index = 0
-    ntc = []
     trajectories[:] = []
     Trajectory.resetGlobID()
     # Canvas refresh
