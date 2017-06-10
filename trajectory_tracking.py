@@ -205,6 +205,9 @@ def cluster_trajectories_agglomerative(event):
         # Clustering
         clusters.clusterAgglomerative(trajectories, MAX_CLUSTERS)
 
+        # Canvas refresh
+        map.draw_init(Aoi.select(), origin, controls)
+
         # Calcola il numero di traiettorie per cluster
         ntc = [0] * MAX_CLUSTERS
         for t in trajectories:
@@ -212,7 +215,8 @@ def cluster_trajectories_agglomerative(event):
         print("Clusters:")
         for i in range(MAX_CLUSTERS):
             if ntc[i] > 0:
-                print("- " + str(ntc[i]) + " " + colors.keys()[i])
+                perc = float(ntc[i]) / float(len(trajectories)) * 100
+                print("- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[i] + "(" + str(ntc[i]) + ")")
         print("")
 
 
@@ -229,7 +233,7 @@ def cluster_trajectories_spectral(event):
 
         # Clustering
         if MAX_CLUSTERS_USER_DEFINED:
-            clusters.clusterSpectral(trajectories, MAX_CLUSTERS)
+            g = clusters.clusterSpectral(trajectories, MAX_CLUSTERS)
         else:
             g = clusters.clusterSpectral(trajectories)
 
@@ -246,6 +250,16 @@ def cluster_trajectories_spectral(event):
         for i in range(g):
             if ntc[i] > 0:
                 print("- " + str(ntc[i]) + " " + colors.keys()[i])
+        if MAX_CLUSTERS_USER_DEFINED:
+            for i in range(MAX_CLUSTERS):
+                if ntc[i] > 0:
+                    perc = float(ntc[i]) / float(len(trajectories)) * 100
+                    print("- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[i] + "(" + str(ntc[i]) + ")")
+        else:
+            for i in range(g):
+                if ntc[i] > 0:
+                    perc = float(ntc[i]) / float(len(trajectories)) * 100
+                    print("- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[i] + "(" + str(ntc[i]) + ")")
         print("")
 
 
@@ -269,20 +283,38 @@ def draw_single_cluster(event):
             cluster_index += 1
         else:
             cluster_index = 0
+    else:
+        if len(ntc) == 0:
+            print "Error: No cluster computed.\n"
+        else:
+            map.draw_init(Aoi.select(), origin, controls)
+            for trajectory in trajectories:
+                if trajectory.getClusterIdx() == cluster_index:
+                    map.draw_trajectory(trajectory, color=colors.values()[cluster_index])
+            if cluster_index < len(ntc) - 1:
+                cluster_index += 1
+            else:
+                cluster_index = 0
 
 
 def draw_all_clusters(event):
     print('>> 7: Draw all clusters:')
-    map.draw_init(Aoi.select(), origin, controls)
 
-    for t in trajectories:
-        map.draw_trajectory(t, colors.values()[t.getClusterIdx()])
+    global ntc
+    if len(ntc) == 0:
+        print "Error: No cluster computed.\n"
+    else:
+        # Canvas refresh
+        map.draw_init(Aoi.select(), origin, controls)
+        for t in trajectories:
+            map.draw_trajectory(t, colors.values()[t.getClusterIdx()])
 
 
 def reset(event):
-    global t, cluster_index
+    global t, cluster_index, ntc
     t = 0
     cluster_index = 0
+    ntc = []
     trajectories[:] = []
     Trajectory.resetGlobID()
     # Canvas refresh
