@@ -101,19 +101,24 @@ print('5: Spectral Clustering of Trajectories (may require a few seconds)\n')
 ########################################################################################################################
 
 def compute_trajectories(event):
-    n_cart = 0
+    c = 0
     # Per ogni tipo di carrello
+    print("Computing trajectories:")
     for cart in carts:
-        n_cart += 1
-        print("Computing cart trajectories: " + str(n_cart) + " of " + str(carts.count()) + "..")
+        print("Progress: " + '{0:.3g}'.format(100 * (float(c) / float(carts.count()))) + "%")
 
-        # Preleva tutte le istanze del carrello ordinate rispetto al tempo
-        instances = list(Cart.select().order_by(Cart.time_stamp.desc()).where(Cart.tag_id == cart.tag_id))
+        # Preleva tutte le istanze del carrello ordinate rispetto al tempo,
+        # eliminando quelle in posizioni esterne alla mappa (con cordinate non positive)
+        instances = list(
+            Cart.select()
+                .order_by(Cart.time_stamp.desc())
+                .where(Cart.tag_id == cart.tag_id)
+                .where(Cart.x > 0).where(Cart.y > 0)
+        )
 
         # Divide tutte le istanze in traiettorie che iniziano e finiscono nell'origine
         # e costruisce un array di traiettorie complete per il carrello in esame.
         # NB: se l'ultima corsa non raggiunge l'origine, non viene considerata.
-
         # TODO: aggiungere condizioni per le aree di controllo
 
         min_run_length = 120
@@ -122,14 +127,15 @@ def compute_trajectories(event):
         is_run_started = False
         i = 0
         for instance in instances:
-            if (not instance.inside(origin) and not instance.inside(controls["c1"]) and not instance.inside(
-                    controls["c8"]) and is_run_started) or (instance.inside(origin) and not is_run_started) or (
-                        instance.inside(controls["c1"]) and not is_run_started) or (
-                        instance.inside(controls["c8"]) and not is_run_started):
+            if (not instance.inside(origin) and not instance.inside(controls["c1"])
+                and not instance.inside(controls["c8"]) and is_run_started) \
+                    or (instance.inside(origin) and not is_run_started) \
+                    or (instance.inside(controls["c1"]) and not is_run_started) \
+                    or (instance.inside(controls["c8"]) and not is_run_started):
                 pass
             else:
-                if not instance.inside(origin) and not instance.inside(controls["c1"]) and not instance.inside(
-                        controls["c8"]) and not is_run_started:
+                if not instance.inside(origin) and not instance.inside(controls["c1"]) \
+                        and not instance.inside(controls["c8"]) and not is_run_started:
                     # Avvia la corsa
                     is_run_started = True
                     begin = i
@@ -139,17 +145,14 @@ def compute_trajectories(event):
                     run = instances[begin:i]
                     if len(run) > min_run_length and len(run) < max_run_length:
                         trajectory = Trajectory(run, ci)
-                        # Pulisce la traiettoria
                         trajectory.clean()
-                        # Aggiunge la traiettoria alla lista
                         trajectories.append(trajectory)
-                        # Filtra la traiettoria attraverso un filtro di Kalman
                         # trajectory.filter()
             i += 1
+        c += 1
 
-    print("Computing trajectories: finished.")
-    print("Number of trajectories: " + str(len(trajectories)) + "\n")
-
+    print("Progress: 100%")
+    print("N. of trajectories: " + str(len(trajectories)) + "\n")
 
 def draw_single_trajectory(event):
     map.draw_init(Aoi.select(), origin, controls)
@@ -161,7 +164,7 @@ def draw_single_trajectory(event):
         else:
             t = 0
     else:
-        print "Error: No trajectories computed.\n"
+        print "Error: No trajectory computed.\n"
 
 
 def draw_all_trajectories(event):
@@ -169,7 +172,7 @@ def draw_all_trajectories(event):
     for trajectory in trajectories:
         map.draw_trajectory(trajectory, color="red")
     if len(trajectories) == 0:
-        print "Error: No trajectories computed.\n"
+        print "Error: No trajectory computed.\n"
 
 
 def cluster_trajectories_agglomerative(event):
