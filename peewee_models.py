@@ -29,3 +29,9 @@ class Cart(BaseModel):
 
     def inside(self, aoi):
         return self.x > aoi.x_min and self.x < aoi.x_max and self.y > aoi.y_min and self.y < aoi.y_max
+
+    def multinside(self, aois):
+        for aoi in aois.values():
+            if self.inside(aoi):
+                return True
+        return False
