@@ -42,13 +42,13 @@ origin = Aoi(x_min=0.1, x_max=14., y_min=28.5, y_max=35.18)
 # Aree di controllo
 controls = {
     "c1": Aoi(x_min=41.18, x_max=44.23, y_min=19.53, y_max=21.49),
-    "c2": Aoi(x_min=31.13, x_max=34.28, y_min=19.53, y_max=21.49),
+    # "c2": Aoi(x_min=31.13, x_max=34.28, y_min=19.53, y_max=21.49),
     "c3": Aoi(x_min=31.13, x_max=34.24, y_min=9.55, y_max=12.43),
-    "c4": Aoi(x_min=41.26, x_max=44.22, y_min=9.55, y_max=12.43),
+    #"c4": Aoi(x_min=41.26, x_max=44.22, y_min=9.55, y_max=12.43),
     "c5": Aoi(x_min=0.74, x_max=4.4, y_min=18.74, y_max=22.00),
-    "c6": Aoi(x_min=8.1, x_max=11.15, y_min=18.63, y_max=22.00),
+    #"c6": Aoi(x_min=8.1, x_max=11.15, y_min=18.63, y_max=22.00),
     "c7": Aoi(x_min=8.1, x_max=11.88, y_min=9.08, y_max=12.03),
-    "c8": Aoi(x_min=19.08, x_max=22.12, y_min=9.08, y_max=11.35)
+    #"c8": Aoi(x_min=19.08, x_max=22.12, y_min=9.08, y_max=11.35)
 }
 
 # Lista delle traiettorie
@@ -137,23 +137,13 @@ def compute_trajectories(event):
         i = 0
         cart_trajectories = []
         for instance in instances:
-            if (not instance.inside(origin)
-                and not instance.inside(controls["c1"])
-                and not instance.inside(controls["c3"])
-                and not instance.inside(controls["c5"])
-                and not instance.inside(controls["c7"]) and is_run_started) \
+            if (not instance.inside(origin) and not instance.multinside(controls) and is_run_started) \
                     or (instance.inside(origin) and not is_run_started) \
-                    or (instance.inside(controls["c1"]) and not is_run_started) \
-                    or (instance.inside(controls["c3"]) and not is_run_started) \
-                    or (instance.inside(controls["c5"]) and not is_run_started) \
-                    or (instance.inside(controls["c7"]) and not is_run_started):
+                    or (instance.multinside(controls) and not is_run_started):
                 pass
             else:
-                if not instance.inside(origin) \
-                        and not instance.inside(controls["c1"]) \
-                        and not instance.inside(controls["c3"]) \
-                        and not instance.inside(controls["c5"]) \
-                        and not instance.inside(controls["c7"]) and not is_run_started:
+                if not instance.inside(origin) and not instance.multinside(controls["c1"]) \
+                        and not is_run_started:
                     # Avvia la corsa
                     is_run_started = True
                     begin = i
@@ -250,7 +240,9 @@ def cluster_trajectories_spectral(event):
         ntc = [0] * g
         for t in trajectories:
             ntc[t.getClusterIdx()] += 1
+
         print("Clusters:")
+
         for i in range(g):
             if ntc[i] > 0:
                 print("- " + str(ntc[i]) + " " + colors.keys()[i])
@@ -261,15 +253,18 @@ def draw_single_cluster(event):
     print('>> 6: Draw single cluster:')
 
     global cluster_index, ntc
+
     if len(trajectories) == 0:
         print "Error: No trajectories computed.\n"
     if len(ntc) == 0:
         print "Error: No cluster computed.\n"
     else:
         map.draw_init(Aoi.select(), origin, controls)
+
         for trajectory in trajectories:
             if trajectory.getClusterIdx() == cluster_index:
                 map.draw_trajectory(trajectory, color=colors[cluster_index])
+
         if cluster_index < len(ntc) - 1:
             cluster_index += 1
         else:
