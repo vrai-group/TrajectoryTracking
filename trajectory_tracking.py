@@ -139,17 +139,11 @@ def compute_trajectories(event):
         for instance in instances:
             if (not instance.inside(origin) and not instance.multinside(controls) and is_run_started) \
                     or (instance.inside(origin) and not is_run_started) \
-                    or (instance.inside(controls["c1"]) and not is_run_started) \
-                    or (instance.inside(controls["c3"]) and not is_run_started) \
-                    or (instance.inside(controls["c5"]) and not is_run_started) \
-                    or (instance.inside(controls["c7"]) and not is_run_started):
+                    or (instance.multinside(controls) and not is_run_started):
                 pass
             else:
                 if not instance.inside(origin) \
-                        and not instance.inside(controls["c1"]) \
-                        and not instance.inside(controls["c3"]) \
-                        and not instance.inside(controls["c5"]) \
-                        and not instance.inside(controls["c7"]) and not is_run_started:
+                        and not instance.multinside(controls) and not is_run_started:
                     # Avvia la corsa
                     is_run_started = True
                     begin = i
@@ -173,7 +167,6 @@ def compute_trajectories(event):
 
 
 def draw_single_trajectory(event):
-    print('>> 2: Draw single trajectory')
 
     map.draw_init(Aoi.select(), origin, controls)
     global t, len
@@ -188,7 +181,6 @@ def draw_single_trajectory(event):
 
 
 def draw_all_trajectories(event):
-    print('>> 3: Draw all trajectories (may take a few seconds)')
 
     map.draw_init(Aoi.select(), origin, controls)
     for trajectory in trajectories:
