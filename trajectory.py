@@ -47,7 +47,7 @@ class Trajectory():
         while index < len(self.points) - 1:
             f.F = np.array([[1, 0], [0, 1]])  # state transition matrix
             f.H = np.array([[1, 0], [0, 1]])  # Measurement function
-            f.P *= 1000.  # covariance matrix
+            f.P *= 1.5  # covariance matrix
             f.R = np.array([[1, 0], [0, 1]])  # state uncertainty
             f.Q = Q_discrete_white_noise(2, 1., 1.)  # process uncertainty
             f.predict()
