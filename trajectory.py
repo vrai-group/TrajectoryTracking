@@ -16,6 +16,7 @@ class Trajectory():
         self.gti = gti
         self.ci = -1
         self.prefixSum = [0.0]
+        self.track = -1
 
         self.build()
 
