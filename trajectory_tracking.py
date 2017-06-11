@@ -156,7 +156,7 @@ def compute_trajectories(event):
                         # Pulisce la traiettoria
                         trajectory.clean()
                         # Filtra la traiettoria attraverso un filtro di Kalman
-                        # trajectory.filter()
+                        trajectory.filter()
                         # Aggiunge la traiettoria alla lista
                         trajectories.append(trajectory)
             i += 1
