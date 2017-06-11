@@ -31,7 +31,7 @@ dataset_filepath = os.path.join(PROJECT_ROOT, dataset_folder, dataset_file + dat
 try:
     open(dataset_filepath, "rb")
 except IOError:
-    print "Dataset '" + dataset_file + dataset_ext + "' does not exist inside folder '" + dataset_folder + "'"
+    print("Dataset '" + dataset_file + dataset_ext + "' does not exist inside folder '" + dataset_folder + "'")
     exit()
 
 # IF YOU NEED TO BUILD A SINGLE DB CONTAINING ALL YOUR TABLES, YOU MAY
