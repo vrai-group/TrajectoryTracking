@@ -40,7 +40,7 @@ class Map(Canvas):
 
         # Disegna le aree di interesse
         for aoi in aois:
-            self.draw_aoi(aoi, color="darkgray", text=aoi.id)
+            self.draw_aoi(aoi, color="#D3D3D3", text=aoi.id)
 
             # Disegna l'area di origine
             self.draw_aoi(origin, color="peachpuff", text="ORIGIN")
