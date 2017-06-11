@@ -177,7 +177,7 @@ def draw_single_trajectory(event):
         else:
             t = 0
     else:
-        print "Error: No trajectories computed.\n"
+        print("Error: No trajectories computed.\n")
 
 
 def draw_all_trajectories(event):
@@ -186,7 +186,7 @@ def draw_all_trajectories(event):
     for trajectory in trajectories:
         map.draw_trajectory(trajectory, color="red")
     if len(trajectories) == 0:
-        print "Error: No trajectories computed.\n"
+        print("Error: No trajectories computed.\n")
 
 
 def cluster_trajectories_agglomerative(event):
@@ -260,12 +260,12 @@ def draw_single_cluster(event):
 
     global cluster_index, ntc
     if len(trajectories) == 0:
-        print "Error: No trajectories computed.\n"
+        print("Error: No trajectories computed.\n")
     if len(ntc) == 0:
-        print "Error: No cluster computed.\n"
+        print("Error: No cluster computed.\n")
     else:
         if len(ntc) == 0:
-            print "Error: No cluster computed.\n"
+            print("Error: No cluster computed.\n")
         else:
             map.draw_init(Aoi.select(), origin, controls)
             for trajectory in trajectories:
