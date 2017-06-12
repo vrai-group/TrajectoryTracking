@@ -6,6 +6,6 @@ class Track:
         self.trajectories = []
         self.cluster_code = []
 
-    def addTrajectory(self, t):
+    def add_trajectory(self, t):
         self.trajectories.append(t)
         self.cluster_code.append(t.getClusterIdx())
