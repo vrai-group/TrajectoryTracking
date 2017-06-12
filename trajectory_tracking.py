@@ -133,9 +133,9 @@ def compute_trajectories(event):
         # e costruisce un array di traiettorie complete per il carrello in esame.
         # NB: se l'ultima corsa non raggiunge l'origine, non viene considerata.
 
-        complete_min_run_length = 120
-        middle_min_run_length = 100
-        max_run_length = 130
+        complete_min_run_length = 40
+        middle_min_run_length = 20
+        max_run_length = 300
         begin = 0
         is_run_started = False
         i = 0
@@ -176,6 +176,8 @@ def compute_trajectories(event):
             i += 1
         n_cart += 1
 
+    t = len(trajectories) - 1
+
     # Setta l'attributo track a ogni trajectory in modo da recuperare le traiettorie complete
     n_track = -1
     flag = False
@@ -203,11 +205,11 @@ def draw_single_trajectory(event):
     map.draw_init(Aoi.select(), origin, controls)
     global t, len
     if len(trajectories) > 0:
-        map.draw_trajectory(trajectories[t % len(trajectories)], color="red")
-        if t < len(trajectories):
-            t += 1
+        map.draw_trajectory(trajectories[t], color="red")
+        if t >= 0:
+            t -= 1
         else:
-            t = 0
+            t = len(trajectories) - 1
     else:
         print("Error: No trajectories computed.\n")
 
@@ -359,6 +361,17 @@ def compute_tracks(event):
                 key = str(track.cluster_code)
                 macro_clusters[key] = macro_clusters.get(key, 0) + 1
             print("Macro clusters computed.\n")
+
+            print("Macro clusters: ")
+
+            for cluster_code in macro_clusters:
+                keys = []
+                cluster_codes = list(eval(cluster_code))
+                for code in cluster_codes:
+                    keys.append(colors.keys()[code])
+                print keys, macro_clusters[cluster_code]
+
+
 
 
 
