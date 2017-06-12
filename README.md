@@ -3,7 +3,7 @@ The aim of this project is to perform a cluster analysis of 2D general trajector
 
 ## How does it work?
 ### 1) Database building
-The system relies on capturing the data of the carts - a time-varying location which can be thought of as a trajectory. These datas are stored inside a relational database before the use.
+The system relies on capturing the data of the carts - time-varying locations which can be thought of as a trajectories. These datas are stored inside a relational database before the use.
 
 #### How to use the database-builder script?
 _Note 1: Before you start using the builder-script, make sure that a folder called "sqlite" exists in the root folder of the builder.py script (just create it if necessary). It is the folder where you will find the .db result files (you can edit the result folder name whenever you want by editing the builder.py script)._
@@ -16,12 +16,15 @@ In the _builder.py_ script you'll find two editable contents: the "DATASET" sect
 _Note 2: You don't have to edit anything, excepts the "DATASET" and "MODEL" sections, in order to make the builder-script work._
 
 ### 2) Origin area and trajectory identifying
-Preliminarily, the collected data within the database are extracted and analyzed to remove the unacceptable positions (usually, the ones outside the bounds of the map). Subsequently, the positions are made use for identifying the actual trajectories: we have identified as a trajectorys a run that begins and ends within the same area, called origin "origin area" (or, simply, "origin").
+Preliminarily, the collected data within the database are extracted and analyzed to remove the unacceptable positions (usually, the ones outside the bounds of the map). Subsequently, the positions are made use for identifying the actual trajectories, divided into two categories of concept: we have identified as a _"trajectory"_ a run that begins and ends within the same area, called "origin area" (or, simply, "origin"), where almost any cart begins the run (usually, it is the place of the supermarket where the carts are collected); then, some _"sub-trajectory"_ are computed, starting from a _"trajectory"_ and breaking it into pieces which begin and end within some other areas, called "control areas" (or, simply, "controls").
+
+![Origin area and control areas] (http://i.imgur.com/ZEYToRd.png)
 
 ### 3) Filtering
-* Positions out-of-bounds:
-* Densities of points:
-* Kalman filter: (?)
+The process provides that three filtering operations are applied, once during (_"positions out-of-bounds"_) and two after (_"densities of points"_ and _"Kalman filter"_) the trajectory identifying process.
+* Positions out-of-bounds: Some cart positions may be located outside the bounds of the map (positions with negative x and/or y coordinates). Carts having positions out-of-bounds are simply "jumped" in the trajectory identifying process.
+* Densities of points: Due to the inaccuracy of the GPS or the chaotic behaviour of the customers, some trajectories may be characterized by segments with an high density of sparse points within a small area. These segments are smoothed removing the unuseful densities of points.
+* Kalman filter: A standard Kalman filter is then applied to each trajectory in order to smooth them, by removing the noise and the inaccuracies of the geo-positioning system.
 
 ### 4) Clustering
 * Agglomerative:
