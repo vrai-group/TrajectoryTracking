@@ -133,9 +133,9 @@ def compute_trajectories(event):
         # e costruisce un array di traiettorie complete per il carrello in esame.
         # NB: se l'ultima corsa non raggiunge l'origine, non viene considerata.
 
-        complete_min_run_length = 40
-        middle_min_run_length = 20
-        max_run_length = 300
+        complete_min_run_length = 130
+        middle_min_run_length = 80
+        max_run_length = 150
         begin = 0
         is_run_started = False
         i = 0
@@ -206,6 +206,10 @@ def draw_single_trajectory(event):
     global t, len
     if len(trajectories) > 0:
         map.draw_trajectory(trajectories[t], color="red")
+        map.create_text(860, 50, text="Cart id: " + trajectories[t].run[0].tag_id, anchor=W)
+        map.create_text(860, 80, text="Inizio della corsa: " + str(trajectories[t].run[len(trajectories[t].run) - 1] \
+                                                                   .time_stamp), anchor=W)
+        map.create_text(860, 110, text="Fine della corsa:   " + str(trajectories[t].run[0].time_stamp), anchor=W)
         if t >= 0:
             t -= 1
         else:
@@ -215,11 +219,15 @@ def draw_single_trajectory(event):
 
 
 def draw_all_trajectories(event):
+    # Canvas refresh
     map.draw_init(Aoi.select(), origin, controls)
-    for trajectory in trajectories:
-        map.draw_trajectory(trajectory, color="red")
+
     if len(trajectories) == 0:
         print("Error: No trajectories computed.\n")
+    else:
+        for trajectory in trajectories:
+            map.draw_trajectory(trajectory, color="red")
+        map.create_text(860, 50, text="N. of trajectories: " + str(len(trajectories)), anchor=W)
 
 
 def cluster_trajectories_agglomerative(event):
@@ -248,6 +256,7 @@ def cluster_trajectories_agglomerative(event):
             if ntc[i] > 0:
                 perc = float(ntc[i]) / float(len(trajectories)) * 100
                 print("- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[i] + " (" + str(ntc[i]) + ")")
+
         print("")
 
 
@@ -290,6 +299,7 @@ def cluster_trajectories_spectral(event):
                 if ntc[i] > 0:
                     perc = float(ntc[i]) / float(len(trajectories)) * 100
                     print("- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[i] + " (" + str(ntc[i]) + ")")
+
         print("")
 
 
@@ -307,6 +317,10 @@ def draw_single_cluster(event):
             for trajectory in trajectories:
                 if trajectory.getClusterIdx() == cluster_index:
                     map.draw_trajectory(trajectory, color=colors.values()[cluster_index])
+            perc = float(ntc[cluster_index]) / float(len(trajectories)) * 100
+            map.create_text(860, 50,
+                            text="- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[cluster_index] + " (" + str(
+                                ntc[cluster_index]) + ")", anchor=W)
             if cluster_index < len(ntc) - 1:
                 cluster_index += 1
             else:
@@ -326,6 +340,11 @@ def draw_all_clusters(event):
 
             for trajectory in trajectories:
                 map.draw_trajectory(trajectory, colors.values()[trajectory.getClusterIdx()])
+            for i in range(len(ntc)):
+                if ntc[i] > 0:
+                    perc = float(ntc[i]) / float(len(trajectories)) * 100
+                    map.create_text(860, i * 30 + 50, text="- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[i] + \
+                                                           " (" + str(ntc[i]) + ")", anchor=W)
 
 
 def compute_tracks(event):
@@ -363,17 +382,12 @@ def compute_tracks(event):
             print("Macro clusters computed.\n")
 
             print("Macro clusters: ")
-
             for cluster_code in macro_clusters:
                 keys = []
                 cluster_codes = list(eval(cluster_code))
                 for code in cluster_codes:
                     keys.append(colors.keys()[code])
                 print keys, macro_clusters[cluster_code]
-
-
-
-
 
 
 def draw_track(event):
