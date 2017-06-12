@@ -58,6 +58,7 @@ tracks = []
 track_index = 0
 # Macro cluster
 macro_clusters = {}
+macro_index = 0
 
 
 # cluster-index (per il disegno)
@@ -99,6 +100,7 @@ print('6: Draw single cluster')
 print('7: Draw all clusters')
 print('8: Compute tracks')
 print('9: Draw single track')
+print('0: Draw macro cluster')
 print('r: Reset\n')
 
 ########################################
@@ -174,7 +176,6 @@ def compute_trajectories(event):
                             trajectory.filter()
                             # Aggiunge la traiettoria alla lista
                             trajectories.append(trajectory)
-
             i += 1
         n_cart += 1
 
@@ -359,8 +360,9 @@ def compute_tracks(event):
         if len(ntc) == 0:
             print("Error: No cluster computed.\n")
         else:
-            global track_index
+            global track_index, macro_index
             track_index = 0
+            macro_index = 0
 
             # Canvas refresh
             map.draw_init(Aoi.select(), origin, controls)
@@ -414,17 +416,61 @@ def draw_track(event):
 
                 for i in tracks[track_index].trajectories:
                     map.draw_trajectory(i, colors.values()[i.getClusterIdx()])
+
+                map.create_text(860, 50, text="Cart id: " + tracks[track_index].trajectories[0].run[0].tag_id, anchor=W)
+                map.create_text(860, 80, text="Inizio della corsa: " + str(
+                    tracks[track_index].trajectories[len(tracks[track_index].trajectories) - 1].run[len(
+                        tracks[track_index].trajectories[
+                            len(tracks[track_index].trajectories) - 1].run) - 1].time_stamp), anchor=W)
+                map.create_text(860, 110, text="Fine della corsa:   " + str(
+                    tracks[track_index].trajectories[0].run[0].time_stamp), anchor=W)
+
                 if track_index < len(tracks) - 1:
                     track_index += 1
                 else:
                     track_index = 0
 
 
+def draw_macro_cluster(event):
+    global macro_index
+    if len(trajectories) == 0:
+        print("Error: No trajectories computed.\n")
+    if len(ntc) == 0:
+        print("Error: No cluster computed.\n")
+    if len(tracks) == 0:
+        print("Error: No tracks computed.\n")
+    else:
+        if len(ntc) == 0:
+            print("Error: No cluster computed.\n")
+        if len(tracks) == 0:
+            print("Error: No tracks computed.\n")
+        else:
+            if len(tracks) == 0:
+                print("Error: No tracks computed.\n")
+            else:
+                # Canvas refresh
+                map.draw_init(Aoi.select(), origin, controls)
+
+                for track in tracks:
+                    if str(track.cluster_code) == macro_clusters.keys()[macro_index]:
+                        for traj in track.trajectories:
+                            map.draw_trajectory(traj, color=colors.values()[traj.getClusterIdx()])
+                map.create_text(860, 50,
+                                text="N. di Tracks per il Macro Cluster: " + str(macro_clusters.values()[macro_index]),
+                                anchor=W)
+                if macro_index < len(macro_clusters) - 1:
+                    macro_index += 1
+                else:
+                    macro_index = 0
+
+
+
 def reset(event):
-    global t, cluster_index, tracks_index
+    global t, cluster_index, tracks_index, macro_index
     t = 0
     cluster_index = 0
     tracks_index = 0
+    macro_index = 0
     trajectories[:] = []
     Trajectory.resetGlobID()
     # Canvas refresh
@@ -448,6 +494,7 @@ tkmaster.bind("6", draw_single_cluster)
 tkmaster.bind("7", draw_all_clusters)
 tkmaster.bind("8", compute_tracks)
 tkmaster.bind("9", draw_track)
+tkmaster.bind("0", draw_macro_cluster)
 tkmaster.bind("r", reset)
 
 mainloop()
