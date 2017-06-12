@@ -133,9 +133,9 @@ def compute_trajectories(event):
         # e costruisce un array di traiettorie complete per il carrello in esame.
         # NB: se l'ultima corsa non raggiunge l'origine, non viene considerata.
 
-        complete_min_run_length = 130
-        middle_min_run_length = 80
-        max_run_length = 150
+        complete_min_run_length = 50
+        middle_min_run_length = 15
+        max_run_length = 350
         begin = 0
         is_run_started = False
         i = 0
@@ -155,7 +155,8 @@ def compute_trajectories(event):
                     is_run_started = False
                     run = instances[begin:i]
                     if instance.inside(origin):
-                        if complete_min_run_length < len(run) < max_run_length:
+                        if (complete_min_run_length < len(run) < max_run_length) and \
+                                ((str(instances[begin].time_stamp - instances[i].time_stamp)) < str(3)):
                             trajectory = Trajectory(run, ci)
                             # Pulisce la traiettoria
                             trajectory.clean()
@@ -164,7 +165,8 @@ def compute_trajectories(event):
                             # Aggiunge la traiettoria alla lista
                             trajectories.append(trajectory)
                     else:
-                        if middle_min_run_length < len(run):
+                        if (middle_min_run_length < len(run)) and \
+                                ((str(instances[begin].time_stamp - instances[i].time_stamp)) < str(3)):
                             trajectory = Trajectory(run, ci)
                             # Pulisce la traiettoria
                             trajectory.clean()
