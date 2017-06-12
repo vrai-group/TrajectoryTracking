@@ -24,9 +24,9 @@ _Example of market map: origin area and control areas highlighted_
 
 ### 3) Filtering
 The process provides that three filtering operations are applied, once during (_"positions out-of-bounds"_) and two after (_"densities of points"_ and _"Kalman filter"_) the trajectory identifying process.
-* Positions out-of-bounds: Some cart positions may be located outside the bounds of the map (positions with negative x and/or y coordinates). Carts having positions out-of-bounds are simply "jumped" in the trajectory identifying process.
-* Densities of points: Due to the inaccuracy of the GPS or the chaotic behaviour of the customers, some trajectories may be characterized by segments with an high density of sparse points within a small area. These segments are smoothed removing the unuseful densities of points.
-* Kalman filter: A standard Kalman filter is then applied to each trajectory in order to smooth them, by removing the noise and the inaccuracies of the geo-positioning system.
+* __Positions out-of-bounds__: Some cart positions may be located outside the bounds of the map (positions with negative x and/or y coordinates). Carts having positions out-of-bounds are simply "jumped" in the trajectory identifying process.
+* __Densities of points__: Due to the inaccuracy of the GPS or the chaotic behaviour of the customers, some trajectories may be characterized by segments with an high density of sparse points within a small area. These segments are smoothed removing the unuseful densities of points.
+* __Kalman filter__: A standard Kalman filter is then applied to each trajectory in order to smooth them, by removing the noise and the inaccuracies of the geo-positioning system.
 
 ### 4) Clustering
 * Agglomerative:
