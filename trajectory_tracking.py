@@ -70,7 +70,7 @@ clusters = Clustering()
 cluster_index = 0
 ntc = []  # Number of Trajectories per Cluster
 # Lista delle tracks
-tracks = []
+tracks = [Track()]
 track_index = 0
 
 # cluster-index (per il disegno)
@@ -146,8 +146,8 @@ def compute_trajectories(event):
         # e costruisce un array di traiettorie complete per il carrello in esame.
         # NB: se l'ultima corsa non raggiunge l'origine, non viene considerata.
 
-        min_run_length = 30
-        max_run_length = 300
+        min_run_length = 40
+        max_run_length = 150
         begin = 0
         is_run_started = False
         i = 0
@@ -344,16 +344,12 @@ def compute_tracks(event):
             map.draw_init(Aoi.select(), origin, controls)
 
             for traj in trajectories:
-                if len(tracks) == 0:
-                    tracks.append(Track())
-                    tracks[0].addTrajectory(traj)
+                if tracks[len(tracks) - 1].id == traj.track:
+                    tracks[len(tracks) - 1].add_trajectory(traj)
                 else:
-                    if tracks[len(tracks) - 1].id == traj.track:
-                        tracks[len(tracks) - 1].addTrajectory(traj)
-                    else:
-                        tracks.append(Track())
-                        tracks[len(tracks) - 1].addTrajectory(traj)
-            print("Tracks computed.\n")
+                    tracks.append(Track())
+                    tracks[len(tracks) - 1].add_trajectory(traj)
+
 
 
 def draw_track(event):
