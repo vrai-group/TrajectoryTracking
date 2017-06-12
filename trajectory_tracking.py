@@ -56,7 +56,7 @@ controls = {
     # "c2": Aoi(x_min=31.13, x_max=34.28, y_min=19.53, y_max=21.49),
     "c3": Aoi(x_min=31.13, x_max=34.24, y_min=9.55, y_max=12.43),
     #"c4": Aoi(x_min=41.26, x_max=44.22, y_min=9.55, y_max=12.43),
-    "c5": Aoi(x_min=0.74, x_max=4.4, y_min=18.74, y_max=22.00),
+    # "c5": Aoi(x_min=0.74, x_max=4.4, y_min=18.74, y_max=22.00),
     #"c6": Aoi(x_min=8.1, x_max=11.15, y_min=18.63, y_max=22.00),
     "c7": Aoi(x_min=8.1, x_max=11.88, y_min=9.08, y_max=12.03),
     #"c8": Aoi(x_min=19.08, x_max=22.12, y_min=9.08, y_max=11.35)
@@ -139,7 +139,7 @@ def compute_trajectories(event):
             Cart.select()
                 .order_by(Cart.time_stamp.desc())
                 .where(Cart.tag_id == cart.tag_id)
-                .where(Cart.x > 0).where(Cart.y > 0)
+                .where(Cart.x > 0.).where(Cart.y > 0.)
         )
 
         # Divide tutte le istanze in traiettorie che iniziano e finiscono nell'origine
@@ -147,11 +147,10 @@ def compute_trajectories(event):
         # NB: se l'ultima corsa non raggiunge l'origine, non viene considerata.
 
         min_run_length = 30
-        max_run_length = 150
+        max_run_length = 300
         begin = 0
         is_run_started = False
         i = 0
-        cart_trajectories = []
         for instance in instances:
             if (not instance.inside(origin) and not instance.multinside(controls) and is_run_started) \
                     or (instance.inside(origin) and not is_run_started) \
@@ -179,7 +178,7 @@ def compute_trajectories(event):
         n_cart += 1
 
     # Setta l'attributo track a ogni trajectory in modo da recuperare le traiettorie complete
-    n_track = 0
+    n_track = -1
     flag = False
     for trajectory in trajectories:
         stop = trajectory.run[0].inside(
@@ -314,10 +313,18 @@ def draw_single_cluster(event):
 
 
 def draw_all_clusters(event):
-    map.draw_init(Aoi.select(), origin, controls)
+    if len(trajectories) == 0:
+        print("Error: No trajectories computed.\n")
+    if len(ntc) == 0:
+        print("Error: No cluster computed.\n")
+    else:
+        if len(ntc) == 0:
+            print("Error: No cluster computed.\n")
+        else:
+            map.draw_init(Aoi.select(), origin, controls)
 
-    for trajectory in trajectories:
-        map.draw_trajectory(trajectory, colors.values()[trajectory.getClusterIdx()])
+            for trajectory in trajectories:
+                map.draw_trajectory(trajectory, colors.values()[trajectory.getClusterIdx()])
 
 
 def compute_tracks(event):
@@ -346,6 +353,7 @@ def compute_tracks(event):
                     else:
                         tracks.append(Track())
                         tracks[len(tracks) - 1].addTrajectory(traj)
+            print("Tracks computed.\n")
 
 
 def draw_track(event):
