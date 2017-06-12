@@ -18,22 +18,6 @@ print('1) Defining global variables..')
 MAX_CLUSTERS = 8  # MAX_CLUSTERS deve essere <= 10
 MAX_CLUSTERS_USER_DEFINED = False
 
-# colors = {"red": "#FF0000",
-#          "lime": "#00FF00",
-#          "blue": "#0000FF",
-#          "yellow": "#FFFF00",
-#          "green": "#008000",
-#          "aqua": "#00FFFF",
-#          "fuchsia": "#FF00FF",
-#          "maroon": "#800000",
-#          "olive": "#808000",
-#          "teal": "#008080",
-#          "navy": "#000080",
-#          "purple": "#800080",
-#          "gray": "#808080",
-#          "white": "#FFFFFF",
-#          "silver": "#C0C0C0"}
-
 colors = {"purple": "#A020F0",
           "orange": "#FF8C00",
           "red": "#FF0000",
@@ -55,11 +39,11 @@ controls = {
     "c1": Aoi(x_min=41.18, x_max=44.23, y_min=19.53, y_max=21.49),
     # "c2": Aoi(x_min=31.13, x_max=34.28, y_min=19.53, y_max=21.49),
     "c3": Aoi(x_min=31.13, x_max=34.24, y_min=9.55, y_max=12.43),
-    #"c4": Aoi(x_min=41.26, x_max=44.22, y_min=9.55, y_max=12.43),
+    # "c4": Aoi(x_min=41.26, x_max=44.22, y_min=9.55, y_max=12.43),
     # "c5": Aoi(x_min=0.74, x_max=4.4, y_min=18.74, y_max=22.00),
-    #"c6": Aoi(x_min=8.1, x_max=11.15, y_min=18.63, y_max=22.00),
+    # "c6": Aoi(x_min=8.1, x_max=11.15, y_min=18.63, y_max=22.00),
     "c7": Aoi(x_min=8.1, x_max=11.88, y_min=9.08, y_max=12.03),
-    #"c8": Aoi(x_min=19.08, x_max=22.12, y_min=9.08, y_max=11.35)
+    # "c8": Aoi(x_min=19.08, x_max=22.12, y_min=9.08, y_max=11.35)
 }
 
 # Lista delle traiettorie
@@ -70,8 +54,11 @@ clusters = Clustering()
 cluster_index = 0
 ntc = []  # Number of Trajectories per Cluster
 # Lista delle tracks
-tracks = [Track()]
+tracks = []
 track_index = 0
+# Macro cluster
+macro_clusters = {}
+
 
 # cluster-index (per il disegno)
 ci = 0
@@ -146,8 +133,9 @@ def compute_trajectories(event):
         # e costruisce un array di traiettorie complete per il carrello in esame.
         # NB: se l'ultima corsa non raggiunge l'origine, non viene considerata.
 
-        min_run_length = 40
-        max_run_length = 150
+        complete_min_run_length = 120
+        middle_min_run_length = 100
+        max_run_length = 130
         begin = 0
         is_run_started = False
         i = 0
@@ -166,14 +154,25 @@ def compute_trajectories(event):
                     # Interrompe la corsa e salva la traiettoria
                     is_run_started = False
                     run = instances[begin:i]
-                    if len(run) > min_run_length and len(run) < max_run_length:
-                        trajectory = Trajectory(run, ci)
-                        # Pulisce la traiettoria
-                        trajectory.clean()
-                        # Filtra la traiettoria attraverso un filtro di Kalman
-                        trajectory.filter()
-                        # Aggiunge la traiettoria alla lista
-                        trajectories.append(trajectory)
+                    if instance.inside(origin):
+                        if complete_min_run_length < len(run) < max_run_length:
+                            trajectory = Trajectory(run, ci)
+                            # Pulisce la traiettoria
+                            trajectory.clean()
+                            # Filtra la traiettoria attraverso un filtro di Kalman
+                            trajectory.filter()
+                            # Aggiunge la traiettoria alla lista
+                            trajectories.append(trajectory)
+                    else:
+                        if middle_min_run_length < len(run):
+                            trajectory = Trajectory(run, ci)
+                            # Pulisce la traiettoria
+                            trajectory.clean()
+                            # Filtra la traiettoria attraverso un filtro di Kalman
+                            trajectory.filter()
+                            # Aggiunge la traiettoria alla lista
+                            trajectories.append(trajectory)
+
             i += 1
         n_cart += 1
 
@@ -344,11 +343,23 @@ def compute_tracks(event):
             map.draw_init(Aoi.select(), origin, controls)
 
             for traj in trajectories:
-                if tracks[len(tracks) - 1].id == traj.track:
-                    tracks[len(tracks) - 1].add_trajectory(traj)
-                else:
+                if len(tracks) == 0:
                     tracks.append(Track())
-                    tracks[len(tracks) - 1].add_trajectory(traj)
+                    tracks[0].add_trajectory(traj)
+                else:
+                    if tracks[len(tracks) - 1].id == traj.track:
+                        tracks[len(tracks) - 1].add_trajectory(traj)
+                    else:
+                        tracks.append(Track())
+                        tracks[len(tracks) - 1].add_trajectory(traj)
+            print("Tracks computed.")
+
+            # Macro cluster
+            for track in tracks:
+                key = str(track.cluster_code)
+                macro_clusters[key] = macro_clusters.get(key, 0) + 1
+            print("Macro clusters computed.\n")
+
 
 
 
