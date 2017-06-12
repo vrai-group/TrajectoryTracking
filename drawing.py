@@ -48,3 +48,5 @@ class Map(Canvas):
         # Disegna le aree di controllo
         for c in controls:
             self.draw_aoi(controls[c], color="peachpuff", text=c)
+
+        self.create_line(830, 0, 830, 640)
