@@ -35,10 +35,12 @@ colors = {"purple": "#A020F0",
 
 COLOR_BLACK = "#000000"
 
-# Area di origine
+# Origin area
 origin = Aoi(x_min=0.1, x_max=14., y_min=28.5, y_max=35.18)
+# Extended origin area (TODO: reformat and replace with origin)
+extended_origin = Aoi(x_min=0.1, x_max=17., y_min=26.5, y_max=35.18)
 
-# Aree di controllo
+# Control areas
 controls = {
     "c1": Aoi(x_min=41.18, x_max=44.23, y_min=19.53, y_max=21.49),
     # "c2": Aoi(x_min=31.13, x_max=34.28, y_min=19.53, y_max=21.49),
@@ -50,25 +52,24 @@ controls = {
     # "c8": Aoi(x_min=19.08, x_max=22.12, y_min=9.08, y_max=11.35)
 }
 
-# Lista delle traiettorie
+# List of all trajectories
 trajectories = []
-t = 0
-# Lista dei cluster delle traiettorie
+# Index of the current trajectory to draw
+trajectory_index = 0
+# List of clusters
 clusters = Clustering()
+# Index of the current cluster to draw
 cluster_index = 0
-ntc = []  # Number of Trajectories per Cluster
-# Lista delle tracks
+# Number of Trajectories per Cluster
+ntc = []
+# List of tracks
 tracks = []
+# Index of the current track to draw
 track_index = 0
-# Macro cluster
+# List of macro-clusters
 macro_clusters = {}
+# Index of the current macro-clusters to draw
 macro_index = 0
-
-
-# cluster-index (per il disegno)
-ci = 0
-# Flag - a new trajectory being created
-newT = True
 
 ###########################
 print('2) Drawing the map')
@@ -116,18 +117,18 @@ print('r: Reset\n')
 def compute_trajectories(event):
     print('>> 1: Compute trajectories')
 
-    global t, ntc
-    t = 0
+    global trajectory_index, ntc
+    trajectory_index = 0
     ntc = []
     n_cart = 0
     trajectories[:] = []
-    # Per ogni tipo di carrello
+    # For each cart:
     for cart in carts:
         # ProgressBar
         print("Progress: " + '{0:.3g}'.format(100 * (float(n_cart) / float(carts.count()))) + "%")
 
-        # Preleva tutte le istanze del carrello ordinate rispetto al tempo,
-        # eliminando quelle in posizioni esterne alla mappa (con cordinate non positive)
+        # Get all the cart's instances ordered by time,
+        # deleting the one out-of-bounds:
         instances = list(
             Cart.select()
                 .order_by(Cart.time_stamp.desc())
@@ -135,45 +136,62 @@ def compute_trajectories(event):
                 .where(Cart.x > 0.).where(Cart.y > 0.)
         )
 
-        # Divide tutte le istanze in traiettorie che iniziano e finiscono nell'origine
-        # e costruisce un array di traiettorie complete per il carrello in esame.
-        # NB: se l'ultima corsa non raggiunge l'origine, non viene considerata.
+        # Divide all the instances in trajectories which are origin2origin or origin2control or
+        # control2control, and build the array of trajectories.
+        # NB: if the last run does not reach a control or the origin, it is not taken.
 
+        # Minimum length di of an origin2origin trajectory
         complete_min_run_length = 50
+        # Minimum length di of an origin2control trajectory
         middle_min_run_length = 15
+        # Maximum length di of a trajectory
         max_run_length = 350
+
+        # Index of the beginning run instance
         begin = 0
-        is_run_started = False
+        # Index of the current run instance
         i = 0
+        # Flag: run has started
+        has_run_started = False
+
+        # For each instance:
         for instance in instances:
-            if (not instance.inside(origin) and not instance.multinside(controls) and is_run_started) \
-                    or (instance.inside(origin) and not is_run_started) \
-                    or (instance.multinside(controls) and not is_run_started):
+            # If the started run has not reached the origin or a control
+            # or if the non-started run is inside the origin or a control:
+            if (not instance.inside(origin) and not instance.multinside(controls) and has_run_started) \
+                    or (instance.inside(origin) and not has_run_started) \
+                    or (instance.multinside(controls) and not has_run_started):
                 pass
             else:
-                if not instance.inside(origin) \
-                        and not instance.multinside(controls) and not is_run_started:
-                    # Avvia la corsa
-                    is_run_started = True
+                # If it needs to start the run:
+                if not instance.inside(origin) and not instance.multinside(controls) and not has_run_started:
+                    # Start the run
+                    has_run_started = True
+                    # Save the begin index
                     begin = i
+                # If it needs to stop the run:
                 else:
-                    # Interrompe la corsa e salva la traiettoria
-                    is_run_started = False
+                    # Stops the run
+                    has_run_started = False
+                    # Save the run interval
                     run = instances[begin:i]
+
+                    # If the run is an endingrun (inside the origin):
                     if instance.inside(origin):
                         if (complete_min_run_length < len(run) < max_run_length) and \
                                 ((str(instances[begin].time_stamp - instances[i].time_stamp)) < str(3)):
-                            trajectory = Trajectory(run, ci)
+                            trajectory = Trajectory(run)
                             # Pulisce la traiettoria
                             trajectory.clean()
                             # Filtra la traiettoria attraverso un filtro di Kalman
                             trajectory.filter()
                             # Aggiunge la traiettoria alla lista
                             trajectories.append(trajectory)
+                    # If the run is a middlerun (inside a control):
                     else:
                         if (middle_min_run_length < len(run)) and \
                                 ((str(instances[begin].time_stamp - instances[i].time_stamp)) < str(3)):
-                            trajectory = Trajectory(run, ci)
+                            trajectory = Trajectory(run)
                             # Pulisce la traiettoria
                             trajectory.clean()
                             # Filtra la traiettoria attraverso un filtro di Kalman
@@ -183,15 +201,15 @@ def compute_trajectories(event):
             i += 1
         n_cart += 1
 
-    t = len(trajectories) - 1
+    trajectory_index = len(trajectories) - 1
 
-    # Setta l'attributo track a ogni trajectory in modo da recuperare le traiettorie complete
+    # Set the track attribute to each trajectory to find the complete macro-trajectories
     n_track = -1
     flag = False
     for trajectory in trajectories:
-        stop = trajectory.run[0].inside(
-            Aoi(x_min=0.1, x_max=17., y_min=26.5, y_max=35.18))  # ordine decrescente, stop viene prima
-        start = trajectory.run[len(trajectory.run) - 1].inside(Aoi(x_min=0.1, x_max=17., y_min=26.5, y_max=35.18))
+        # Descendent order
+        stop = trajectory.run[0].inside(extended_origin)
+        start = trajectory.run[len(trajectory.run) - 1].inside(extended_origin)
         if start:
             trajectory.track = n_track
             n_track += 1
@@ -210,17 +228,19 @@ def compute_trajectories(event):
 
 def draw_single_trajectory(event):
     map.draw_init(Aoi.select(), origin, controls)
-    global t, len
+    global trajectory_index, len
     if len(trajectories) > 0:
-        map.draw_trajectory(trajectories[t], color="red")
-        map.create_text(860, 50, text="Cart id: " + trajectories[t].run[0].tag_id, anchor=W)
-        map.create_text(860, 80, text="Inizio della corsa: " + str(trajectories[t].run[len(trajectories[t].run) - 1] \
-                                                                   .time_stamp), anchor=W)
-        map.create_text(860, 110, text="Fine della corsa:   " + str(trajectories[t].run[0].time_stamp), anchor=W)
-        if t >= 0:
-            t -= 1
+        map.draw_trajectory(trajectories[trajectory_index], color="red")
+        map.create_text(860, 50, text="Cart id: " + trajectories[trajectory_index].run[0].tag_id, anchor=W)
+        map.create_text(860, 80, text="Inizio della corsa: " + str(
+            trajectories[trajectory_index].run[len(trajectories[trajectory_index].run) - 1] \
+                .time_stamp), anchor=W)
+        map.create_text(860, 110, text="Fine della corsa:   " + str(trajectories[trajectory_index].run[0].time_stamp),
+                        anchor=W)
+        if trajectory_index >= 0:
+            trajectory_index -= 1
         else:
-            t = len(trajectories) - 1
+            trajectory_index = len(trajectories) - 1
     else:
         print("Error: No trajectories computed.\n")
 
@@ -254,7 +274,7 @@ def cluster_trajectories_agglomerative(event):
         # Canvas refresh
         map.draw_init(Aoi.select(), origin, controls)
 
-        # Calcola il numero di traiettorie per cluster
+        # Computes the number of trajectories per cluster
         ntc = [0] * MAX_CLUSTERS
         for t in trajectories:
             ntc[t.getClusterIdx()] += 1
@@ -287,7 +307,7 @@ def cluster_trajectories_spectral(event):
         # Canvas refresh
         map.draw_init(Aoi.select(), origin, controls)
 
-        # Calcola il numero di traiettorie per cluster
+        # Computes the number of trajectories per cluster
         ntc = [0] * g
         for t in trajectories:
             ntc[t.getClusterIdx()] += 1
@@ -471,8 +491,8 @@ def draw_macro_cluster(event):
 
 
 def reset(event):
-    global t, cluster_index, tracks_index, macro_index
-    t = 0
+    global trajectory_index, cluster_index, tracks_index, macro_index
+    trajectory_index = 0
     cluster_index = 0
     tracks_index = 0
     macro_index = 0
