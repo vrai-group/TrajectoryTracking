@@ -4,7 +4,7 @@ from scipy.cluster.vq import kmeans
 from scipy.cluster.vq import kmeans2
 import random
 from scipy import spatial
-from trajectory import euclid_dist
+from trajectory import euclidean_distance
 
 
 class Clustering:
@@ -59,7 +59,7 @@ class Clustering:
             # Find minimum Euclidean distance between point pt1 and set of points sp2
             dist = float("inf")
             for idx in neighborhoodIdxs:
-                newdist = euclid_dist(pt1, t2.getPoints()[idx])
+                newdist = euclidean_distance(pt1, t2.getPoints()[idx])
                 if newdist < dist:
                     dist = newdist
 
@@ -250,16 +250,3 @@ class Clustering:
             trajLab[0].setClusterIdx(trajLab[1])
 
         return g
-
-
-# Testing the module
-if __name__ == "__main__":
-    trajs = [[(0.0, 0.0), (1.0, 1.0), (2.0, 2.0), (3.0, 3.0)],
-             [(0.5, 0.5), (1.5, 1.5), (2.5, 2.5), (3.5, 3.5)],
-             [(12.0, -5.0), (10.0, -2.5), (8.0, 0.0), (6.0, 2.5)],
-             [(14.0, -7.0), (12.0, -4.5), (10.0, -2.0), (8.0, 0.5)]]
-
-    clust = Clustering()
-    res = clust.clusterAgglomerative(trajs, 2)
-
-    print(res)
