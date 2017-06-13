@@ -105,7 +105,7 @@ def show_legend():
     map.log(txt="9: Draw single track\n")
     map.log(txt="0: Draw macro cluster\n")
     map.log(txt="R: Reset\n")
-    map.log(txt="L: Show legend")
+    map.log(txt="L: Show legend\n")
 
 
 show_legend()
@@ -210,7 +210,7 @@ def compute_trajectories(event):
             i += 1
         progress_carts += 1
 
-    map.log(txt="Progress: 100%\n")
+    map.log(txt="Progress: 100%\n\n")
     map.log(txt="Number of trajectories: " + str(len(trajectories)) + "\n")
     map.log(txt="\nComputing tracks..\n")
 
@@ -282,6 +282,7 @@ def draw_all_trajectories(event):
 def cluster_trajectories_agglomerative(event):
     map.clear_log()
     map.log(txt=">> 4: Clustering (agglomerative)\n\n")
+    map.update()
 
     global cluster_index, ntc
     cluster_index = 0
@@ -289,7 +290,8 @@ def cluster_trajectories_agglomerative(event):
     if len(trajectories) == 0:
         map.log(txt="Error: No trajectories computed.\n")
     else:
-        map.log(txt="Clustering..\n")
+        map.log(txt="Clustering..\n\n")
+        map.update()
 
         # Clustering
         clusters.clusterAgglomerative(trajectories, MAX_CLUSTERS)
@@ -300,16 +302,17 @@ def cluster_trajectories_agglomerative(event):
         ntc = [0] * MAX_CLUSTERS
         for t in trajectories:
             ntc[t.getClusterIdx()] += 1
-        map.log(txt="Clusters:")
+        map.log(txt="Clusters:\n")
         for i in range(MAX_CLUSTERS):
             if ntc[i] > 0:
                 perc = float(ntc[i]) / float(len(trajectories)) * 100
-                map.log(txt="- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[i] + " (" + str(ntc[i]) + ")")
+                map.log(txt="- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[i] + " (" + str(ntc[i]) + ")\n")
 
 
 def cluster_trajectories_spectral(event):
     map.clear_log()
     map.log(txt=">> 5: Clustering (spectral)\n\n")
+    map.update()
 
     global cluster_index, ntc, g
     cluster_index = 0
@@ -317,7 +320,8 @@ def cluster_trajectories_spectral(event):
     if len(trajectories) == 0:
         map.log(txt="Error: No trajectories computed.\n")
     else:
-        map.log(txt="Clustering..\n")
+        map.log(txt="Clustering..\n\n")
+        map.update()
 
         # Clustering
         if MAX_CLUSTERS_USER_DEFINED:
@@ -332,21 +336,18 @@ def cluster_trajectories_spectral(event):
         for t in trajectories:
             ntc[t.getClusterIdx()] += 1
 
-        map.log(txt="Clusters:")
-        for i in range(g):
-            if ntc[i] > 0:
-                map.log(txt="- " + str(ntc[i]) + " " + colors.keys()[i])
+        map.log(txt="Clusters:\n")
 
         if MAX_CLUSTERS_USER_DEFINED:
             for i in range(MAX_CLUSTERS):
                 if ntc[i] > 0:
                     perc = float(ntc[i]) / float(len(trajectories)) * 100
-                    map.log(txt="- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[i] + " (" + str(ntc[i]) + ")")
+                    map.log(txt="- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[i] + " (" + str(ntc[i]) + ")\n")
         else:
             for i in range(g):
                 if ntc[i] > 0:
                     perc = float(ntc[i]) / float(len(trajectories)) * 100
-                    map.log(txt="- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[i] + " (" + str(ntc[i]) + ")")
+                    map.log(txt="- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[i] + " (" + str(ntc[i]) + ")\n")
 
 
 def draw_single_cluster(event):
@@ -410,6 +411,9 @@ def compute_tracks(event):
     map.clear_log()
     map.log(txt='>> 8: Compute tracks\n\n')
 
+    tracks = []
+    macro_clusters = {}
+
     if len(trajectories) == 0:
         map.log(txt="Error: No trajectories computed.\n")
     if len(ntc) == 0:
@@ -434,23 +438,23 @@ def compute_tracks(event):
                     else:
                         tracks.append(Track())
                         tracks[len(tracks) - 1].add_trajectory(traj)
-            map.log(txt="Tracks computed.")
+            map.log(txt="Tracks computed.\n")
 
             # Macro cluster
             for track in tracks:
                 key = str(track.cluster_code)
                 macro_clusters[key] = macro_clusters.get(key, 0) + 1
-            map.log(txt="Macro clusters computed.\n")
+            map.log(txt="Macro clusters computed.\n\n")
 
             ord_macro_clusters = OrderedDict(sorted(macro_clusters.items(), key=operator.itemgetter(1), reverse=True))
 
-            map.log(txt="Macro clusters: ")
+            map.log(txt="Macro clusters: \n")
             for cluster_code in ord_macro_clusters:
                 keys = []
                 cluster_codes = list(eval(cluster_code))
                 for code in cluster_codes:
                     keys.append(colors.keys()[code])
-                print keys, ord_macro_clusters[cluster_code]
+                map.log(txt=str(keys) + " " + str(ord_macro_clusters[cluster_code]) + "\n")
 
 
 def draw_single_track(event):
@@ -480,18 +484,18 @@ def draw_single_track(event):
                 for i in tracks[track_index].trajectories:
                     map.draw_trajectory(i, colors.values()[i.getClusterIdx()])
 
-                    map.log(txt="Cart id: " + tracks[track_index].trajectories[0].run[0].tag_id)
-                    map.log(txt=
+                map.log(txt="Cart id: " + tracks[track_index].trajectories[0].run[0].tag_id + "\n")
+                map.log(txt=
                             "Inizio della corsa: "
                             + str(tracks[track_index].trajectories[len(tracks[track_index].trajectories) - 1]
                                   .run[len(
                                 tracks[track_index].trajectories[len(tracks[track_index].trajectories) - 1].run) - 1]
                                   .time_stamp) + "\n"
                             )
-                    map.log(txt=
+                map.log(txt=
                             "Fine della corsa:   "
                             + str(tracks[track_index].trajectories[0].run[0].time_stamp) + "\n"
-                            )
+                        )
 
                 if track_index < len(tracks) - 1:
                     track_index += 1
@@ -529,10 +533,8 @@ def draw_macro_cluster(event):
                         for traj in track.trajectories:
                             map.draw_trajectory(traj, color=colors.values()[traj.getClusterIdx()])
 
-                            map.log(txt=
-                                    "N. di Tracks per il Macro Cluster: "
-                                    + str(ord_macro_clusters.values()[macro_index]) + "\n"
-                                    )
+                map.log(txt="N. di Tracks per il Macro Cluster: " + str(ord_macro_clusters.values()[macro_index]) \
+                            + "\n")
 
                 if macro_index < len(ord_macro_clusters) - 1:
                     macro_index += 1
@@ -553,7 +555,7 @@ def reset(event):
 
     map.draw_init(Aoi.select(), origin, controls)
 
-    map.log(txt=">> Reset executed.\n")
+    map.log(txt="\n>> Reset executed.\n")
 
 
 def legend(event):
