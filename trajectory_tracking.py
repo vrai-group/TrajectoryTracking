@@ -411,9 +411,6 @@ def compute_tracks(event):
     map.clear_log()
     map.log(txt='>> 8: Compute tracks\n\n')
 
-    tracks = []
-    macro_clusters = {}
-
     if len(trajectories) == 0:
         map.log(txt="Error: No trajectories computed.\n")
     if len(ntc) == 0:
