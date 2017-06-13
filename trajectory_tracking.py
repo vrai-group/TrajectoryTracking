@@ -12,12 +12,9 @@ from peewee_models import Cart, Aoi
 from track import Track
 from trajectory import Trajectory
 
-######################
-print('Init started:')
-######################
-#######################################
-print('1) Defining global variables..')
-#######################################
+###########################
+#   1) Global variables   #
+###########################
 
 MAX_CLUSTERS = 8  # MAX_CLUSTERS deve essere <= 10
 MAX_CLUSTERS_USER_DEFINED = False
@@ -71,61 +68,70 @@ macro_clusters = {}
 # Index of the current macro-clusters to draw
 macro_index = 0
 
-###########################
-print('2) Drawing the map')
-###########################
+##########################
+#   2) Drawing the map   #
+##########################
 
 # Inizializza la mappa
 tkmaster = Tk(className="map")
-map = Map(tkmaster, scale=18, width=1100, height=640, bg="#FFFFFF")
+map = Map(tkmaster, scale=18, width=1200, height=640, bg="#FFFFFF")
 map.pack(expand=True, fill="both", side="right")
 
 # Disegna la mappa
 map.draw_init(Aoi.select(), origin, controls)
 
-###########################
-print('3) Selecting carts')
-###########################
+##########################
+#   3) Selecting carts   #
+##########################
 
 # Preleva la lista dei singoli carrelli (len(carts_id) = 16)
 carts = Cart.select().group_by(Cart.tag_id)
 
-##########################
-print('Init completed!\n')
-##########################
 
-########################################
-print('Legend: (keys)')
-print('1: Compute trajectories')
-print('2: Draw single trajectory')
-print('3: Draw all trajectories [may take a few seconds]')
-print('4: Clustering (agglomerative) [may take a few seconds]')
-print('5: Clustering (spectral) [may take a few seconds]')
-print('6: Draw single cluster')
-print('7: Draw all clusters')
-print('8: Compute tracks')
-print('9: Draw single track')
-print('0: Draw macro cluster')
-print('r: Reset\n')
+########################################################################################################################
+#                                                   LEGEND
+########################################################################################################################
+def show_legend():
+    map.clear_log()
+    map.log(txt=">> Legend (keys)\n\n")
+    map.log(txt="1: Compute trajectories\n")
+    map.log(txt="2: Draw single trajectory\n")
+    map.log(txt="3: Draw all trajectories\n")
+    map.log(txt="4: Clustering (agglomerative)\n")
+    map.log(txt="5: Clustering (spectral)\n")
+    map.log(txt="6: Draw single cluster\n")
+    map.log(txt="7: Draw all clusters\n")
+    map.log(txt="8: Compute tracks\n")
+    map.log(txt="9: Draw single track\n")
+    map.log(txt="0: Draw macro cluster\n")
+    map.log(txt="R: Reset\n")
+    map.log(txt="L: Show legend")
 
-########################################
+
+show_legend()
+
+
+########################################################################################################################
 
 ########################################################################################################################
 #                                                   FUNCTIONS                                                          #
 ########################################################################################################################
 
 def compute_trajectories(event):
-    print('>> 1: Compute trajectories')
+    map.clear_log()
+    map.log(txt=">> 1: Compute trajectories\n\n")
 
     global trajectory_index, ntc
     trajectory_index = 0
     ntc = []
-    n_cart = 0
+    progress_carts = 0
     trajectories[:] = []
+
     # For each cart:
     for cart in carts:
         # ProgressBar
-        print("Progress: " + '{0:.3g}'.format(100 * (float(n_cart) / float(carts.count()))) + "%")
+        map.log(txt="Progress: " + '{0:.3g}'.format(100 * (float(progress_carts) / float(carts.count()))) + "%\n")
+        map.update()
 
         # Get all the cart's instances ordered by time,
         # deleting the one out-of-bounds:
@@ -167,8 +173,11 @@ def compute_trajectories(event):
                 if not instance.inside(origin) and not instance.multinside(controls) and not has_run_started:
                     # Start the run
                     has_run_started = True
-                    # Save the begin index
-                    begin = i
+                    # Save the begin index (exception check: run starts outside the origin/control)
+                    if i > 0:
+                        begin = i - 1
+                    else:
+                        begin = 0
                 # If it needs to stop the run:
                 else:
                     # Stops the run
@@ -199,7 +208,11 @@ def compute_trajectories(event):
                             # Aggiunge la traiettoria alla lista
                             trajectories.append(trajectory)
             i += 1
-        n_cart += 1
+        progress_carts += 1
+
+    map.log(txt="Progress: 100%\n")
+    map.log(txt="Number of trajectories: " + str(len(trajectories)) + "\n")
+    map.log(txt="\nComputing tracks..\n")
 
     trajectory_index = len(trajectories) - 1
 
@@ -222,81 +235,89 @@ def compute_trajectories(event):
                     n_track += 1
             trajectory.track = n_track
 
-    print("Progress: 100%")
-    print("N. of trajectories: " + str(len(trajectories)) + "\n")
-
+    map.log(txt="Tracks computed!\n")
 
 def draw_single_trajectory(event):
+    global trajectory_index
+
+    map.clear_log()
+    map.log(txt=">> 2: Draw single trajectory\n\n")
+
     map.draw_init(Aoi.select(), origin, controls)
-    global trajectory_index, len
+
     if len(trajectories) > 0:
         map.draw_trajectory(trajectories[trajectory_index], color="red")
-        map.create_text(860, 50, text="Cart id: " + trajectories[trajectory_index].run[0].tag_id, anchor=W)
-        map.create_text(860, 80, text="Inizio della corsa: " + str(
-            trajectories[trajectory_index].run[len(trajectories[trajectory_index].run) - 1] \
-                .time_stamp), anchor=W)
-        map.create_text(860, 110, text="Fine della corsa:   " + str(trajectories[trajectory_index].run[0].time_stamp),
-                        anchor=W)
+
+        map.log(txt="Cart id: " + str(trajectories[trajectory_index].run[0].tag_id) + "\n")
+        map.log(txt=
+                "Inizio della corsa: "
+                + str(trajectories[trajectory_index].run[len(trajectories[trajectory_index].run) - 1].time_stamp)
+                + "\n"
+                )
+        map.log(txt="Fine della corsa:   " + str(trajectories[trajectory_index].run[0].time_stamp) + "\n")
+
         if trajectory_index >= 0:
             trajectory_index -= 1
         else:
             trajectory_index = len(trajectories) - 1
     else:
-        print("Error: No trajectories computed.\n")
+        map.log(txt="Error: No trajectories computed.\n")
 
 
 def draw_all_trajectories(event):
-    # Canvas refresh
+    map.clear_log()
+    map.log(txt=">> 3: Draw all trajectories\n\n")
+
     map.draw_init(Aoi.select(), origin, controls)
 
     if len(trajectories) == 0:
-        print("Error: No trajectories computed.\n")
+        map.log(txt="Error: No trajectories computed.\n")
     else:
         for trajectory in trajectories:
             map.draw_trajectory(trajectory, color="red")
-        map.create_text(860, 50, text="N. of trajectories: " + str(len(trajectories)), anchor=W)
+
+        map.log(txt="N. of trajectories: " + str(len(trajectories)) + "\n")
 
 
 def cluster_trajectories_agglomerative(event):
-    print('>> 4: Clustering (agglomerative)')
+    map.clear_log()
+    map.log(txt=">> 4: Clustering (agglomerative)\n\n")
 
     global cluster_index, ntc
     cluster_index = 0
 
     if len(trajectories) == 0:
-        print("Error: No trajectories computed.\n")
+        map.log(txt="Error: No trajectories computed.\n")
     else:
-        print("Clustering..\n")
+        map.log(txt="Clustering..\n")
 
         # Clustering
         clusters.clusterAgglomerative(trajectories, MAX_CLUSTERS)
 
-        # Canvas refresh
         map.draw_init(Aoi.select(), origin, controls)
 
         # Computes the number of trajectories per cluster
         ntc = [0] * MAX_CLUSTERS
         for t in trajectories:
             ntc[t.getClusterIdx()] += 1
-        print("Clusters:")
+        map.log(txt="Clusters:")
         for i in range(MAX_CLUSTERS):
             if ntc[i] > 0:
                 perc = float(ntc[i]) / float(len(trajectories)) * 100
-                print("- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[i] + " (" + str(ntc[i]) + ")")
-
-        print("")
+                map.log(txt="- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[i] + " (" + str(ntc[i]) + ")")
 
 
 def cluster_trajectories_spectral(event):
-    print('>> 5: Clustering (spectral)')
+    map.clear_log()
+    map.log(txt=">> 5: Clustering (spectral)\n\n")
 
     global cluster_index, ntc, g
     cluster_index = 0
 
     if len(trajectories) == 0:
-        print("Error: No trajectories computed.\n")
+        map.log(txt="Error: No trajectories computed.\n")
     else:
-        print("Clustering..\n")
+        map.log(txt="Clustering..\n")
 
         # Clustering
         if MAX_CLUSTERS_USER_DEFINED:
@@ -304,50 +325,56 @@ def cluster_trajectories_spectral(event):
         else:
             g = clusters.clusterSpectral(trajectories)
 
-        # Canvas refresh
         map.draw_init(Aoi.select(), origin, controls)
 
         # Computes the number of trajectories per cluster
         ntc = [0] * g
         for t in trajectories:
             ntc[t.getClusterIdx()] += 1
-        print("Clusters:")
 
+        map.log(txt="Clusters:")
         for i in range(g):
             if ntc[i] > 0:
-                print("- " + str(ntc[i]) + " " + colors.keys()[i])
+                map.log(txt="- " + str(ntc[i]) + " " + colors.keys()[i])
+
         if MAX_CLUSTERS_USER_DEFINED:
             for i in range(MAX_CLUSTERS):
                 if ntc[i] > 0:
                     perc = float(ntc[i]) / float(len(trajectories)) * 100
-                    print("- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[i] + " (" + str(ntc[i]) + ")")
+                    map.log(txt="- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[i] + " (" + str(ntc[i]) + ")")
         else:
             for i in range(g):
                 if ntc[i] > 0:
                     perc = float(ntc[i]) / float(len(trajectories)) * 100
-                    print("- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[i] + " (" + str(ntc[i]) + ")")
-
-        print("")
+                    map.log(txt="- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[i] + " (" + str(ntc[i]) + ")")
 
 
 def draw_single_cluster(event):
     global cluster_index, ntc
+
+    map.clear_log()
+    map.log(txt='>> 6: Draw single cluster\n\n')
+
     if len(trajectories) == 0:
-        print("Error: No trajectories computed.\n")
+        map.log(txt="Error: No trajectories computed.\n")
     if len(ntc) == 0:
-        print("Error: No cluster computed.\n")
+        map.log(txt="Error: No cluster computed.\n")
     else:
         if len(ntc) == 0:
-            print("Error: No cluster computed.\n")
+            map.log(txt="Error: No cluster computed.\n")
         else:
             map.draw_init(Aoi.select(), origin, controls)
+
             for trajectory in trajectories:
                 if trajectory.getClusterIdx() == cluster_index:
                     map.draw_trajectory(trajectory, color=colors.values()[cluster_index])
             perc = float(ntc[cluster_index]) / float(len(trajectories)) * 100
-            map.create_text(860, 50,
-                            text="- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[cluster_index] + " (" + str(
-                                ntc[cluster_index]) + ")", anchor=W)
+
+            map.log(txt=
+                    "- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[cluster_index]
+                    + " (" + str(ntc[cluster_index]) + ")\n"
+                    )
+
             if cluster_index < len(ntc) - 1:
                 cluster_index += 1
             else:
@@ -355,13 +382,16 @@ def draw_single_cluster(event):
 
 
 def draw_all_clusters(event):
+    map.clear_log()
+    map.log(txt='>> 7: Draw all clusters\n\n')
+
     if len(trajectories) == 0:
-        print("Error: No trajectories computed.\n")
+        map.log(txt="Error: No trajectories computed.\n")
     if len(ntc) == 0:
-        print("Error: No cluster computed.\n")
+        map.log(txt="Error: No cluster computed.\n")
     else:
         if len(ntc) == 0:
-            print("Error: No cluster computed.\n")
+            map.log(txt="Error: No cluster computed.\n")
         else:
             map.draw_init(Aoi.select(), origin, controls)
 
@@ -370,25 +400,28 @@ def draw_all_clusters(event):
             for i in range(len(ntc)):
                 if ntc[i] > 0:
                     perc = float(ntc[i]) / float(len(trajectories)) * 100
-                    map.create_text(860, i * 30 + 50, text="- " + '{0:.2f}'.format(perc) + "% " + colors.keys()[i] + \
-                                                           " (" + str(ntc[i]) + ")", anchor=W)
+                    map.log(txt=
+                            "- " + '{0:.2f}'.format(perc) + "% "
+                            + colors.keys()[i] + " (" + str(ntc[i]) + ")\n"
+                            )
 
 
 def compute_tracks(event):
-    print('>> 8: Compute tracks')
+    map.clear_log()
+    map.log(txt='>> 8: Compute tracks\n\n')
+
     if len(trajectories) == 0:
-        print("Error: No trajectories computed.\n")
+        map.log(txt="Error: No trajectories computed.\n")
     if len(ntc) == 0:
-        print("Error: No cluster computed.\n")
+        map.log(txt="Error: No cluster computed.\n")
     else:
         if len(ntc) == 0:
-            print("Error: No cluster computed.\n")
+            map.log(txt="Error: No cluster computed.\n")
         else:
             global track_index, macro_index
             track_index = 0
             macro_index = 0
 
-            # Canvas refresh
             map.draw_init(Aoi.select(), origin, controls)
 
             for traj in trajectories:
@@ -401,17 +434,17 @@ def compute_tracks(event):
                     else:
                         tracks.append(Track())
                         tracks[len(tracks) - 1].add_trajectory(traj)
-            print("Tracks computed.")
+            map.log(txt="Tracks computed.")
 
             # Macro cluster
             for track in tracks:
                 key = str(track.cluster_code)
                 macro_clusters[key] = macro_clusters.get(key, 0) + 1
-            print("Macro clusters computed.\n")
+            map.log(txt="Macro clusters computed.\n")
 
             ord_macro_clusters = OrderedDict(sorted(macro_clusters.items(), key=operator.itemgetter(1), reverse=True))
 
-            print("Macro clusters: ")
+            map.log(txt="Macro clusters: ")
             for cluster_code in ord_macro_clusters:
                 keys = []
                 cluster_codes = list(eval(cluster_code))
@@ -420,22 +453,26 @@ def compute_tracks(event):
                 print keys, ord_macro_clusters[cluster_code]
 
 
-def draw_track(event):
+def draw_single_track(event):
     global track_index
+
+    map.clear_log()
+    map.log(txt='>> 9: Draw single track\n\n')
+
     if len(trajectories) == 0:
-        print("Error: No trajectories computed.\n")
+        map.log(txt="Error: No trajectories computed.\n")
     if len(ntc) == 0:
-        print("Error: No cluster computed.\n")
+        map.log(txt="Error: No cluster computed.\n")
     if len(tracks) == 0:
-        print("Error: No tracks computed.\n")
+        map.log(txt="Error: No tracks computed.\n")
     else:
         if len(ntc) == 0:
-            print("Error: No cluster computed.\n")
+            map.log(txt="Error: No cluster computed.\n")
         if len(tracks) == 0:
-            print("Error: No tracks computed.\n")
+            map.log(txt="Error: No tracks computed.\n")
         else:
             if len(tracks) == 0:
-                print("Error: No tracks computed.\n")
+                map.log(txt="Error: No tracks computed.\n")
             else:
                 # Canvas refresh
                 map.draw_init(Aoi.select(), origin, controls)
@@ -443,13 +480,18 @@ def draw_track(event):
                 for i in tracks[track_index].trajectories:
                     map.draw_trajectory(i, colors.values()[i.getClusterIdx()])
 
-                map.create_text(860, 50, text="Cart id: " + tracks[track_index].trajectories[0].run[0].tag_id, anchor=W)
-                map.create_text(860, 80, text="Inizio della corsa: " + str(
-                    tracks[track_index].trajectories[len(tracks[track_index].trajectories) - 1].run[len(
-                        tracks[track_index].trajectories[
-                            len(tracks[track_index].trajectories) - 1].run) - 1].time_stamp), anchor=W)
-                map.create_text(860, 110, text="Fine della corsa:   " + str(
-                    tracks[track_index].trajectories[0].run[0].time_stamp), anchor=W)
+                    map.log(txt="Cart id: " + tracks[track_index].trajectories[0].run[0].tag_id)
+                    map.log(txt=
+                            "Inizio della corsa: "
+                            + str(tracks[track_index].trajectories[len(tracks[track_index].trajectories) - 1]
+                                  .run[len(
+                                tracks[track_index].trajectories[len(tracks[track_index].trajectories) - 1].run) - 1]
+                                  .time_stamp) + "\n"
+                            )
+                    map.log(txt=
+                            "Fine della corsa:   "
+                            + str(tracks[track_index].trajectories[0].run[0].time_stamp) + "\n"
+                            )
 
                 if track_index < len(tracks) - 1:
                     track_index += 1
@@ -459,31 +501,39 @@ def draw_track(event):
 
 def draw_macro_cluster(event):
     global macro_index
+
+    map.clear_log()
+    map.log(txt='>> 0: Draw macro-clusters\n\n')
+
     if len(trajectories) == 0:
-        print("Error: No trajectories computed.\n")
+        map.log(txt="Error: No trajectories computed.\n")
     if len(ntc) == 0:
-        print("Error: No cluster computed.\n")
+        map.log(txt="Error: No cluster computed.\n")
     if len(tracks) == 0:
-        print("Error: No tracks computed.\n")
+        map.log(txt="Error: No tracks computed.\n")
     else:
         if len(ntc) == 0:
-            print("Error: No cluster computed.\n")
+            map.log(txt="Error: No cluster computed.\n")
         if len(tracks) == 0:
-            print("Error: No tracks computed.\n")
+            map.log(txt="Error: No tracks computed.\n")
         else:
             if len(tracks) == 0:
-                print("Error: No tracks computed.\n")
+                map.log(txt="Error: No tracks computed.\n")
             else:
-                # Canvas refresh
                 map.draw_init(Aoi.select(), origin, controls)
+
                 ord_macro_clusters = OrderedDict(
                     sorted(macro_clusters.items(), key=operator.itemgetter(1), reverse=True))
                 for track in tracks:
                     if str(track.cluster_code) == ord_macro_clusters.keys()[macro_index]:
                         for traj in track.trajectories:
                             map.draw_trajectory(traj, color=colors.values()[traj.getClusterIdx()])
-                map.create_text(860, 50, text="N. di Tracks per il Macro Cluster: " + str(ord_macro_clusters.values() \
-                                                                                              [macro_index]), anchor=W)
+
+                            map.log(txt=
+                                    "N. di Tracks per il Macro Cluster: "
+                                    + str(ord_macro_clusters.values()[macro_index]) + "\n"
+                                    )
+
                 if macro_index < len(ord_macro_clusters) - 1:
                     macro_index += 1
                 else:
@@ -492,16 +542,23 @@ def draw_macro_cluster(event):
 
 def reset(event):
     global trajectory_index, cluster_index, tracks_index, macro_index
+
     trajectory_index = 0
     cluster_index = 0
     tracks_index = 0
     macro_index = 0
     trajectories[:] = []
-    Trajectory.resetGlobID()
-    # Canvas refresh
-    map.draw_init(Aoi.select(), origin, controls)
-    print(">> Reset executed.\n")
 
+    Trajectory.resetGlobID()
+
+    map.draw_init(Aoi.select(), origin, controls)
+
+    map.log(txt=">> Reset executed.\n")
+
+
+def legend(event):
+    show_legend()
+    pass
 
 # Command line parsing
 if (len(sys.argv) == 2):
@@ -518,8 +575,9 @@ tkmaster.bind("5", cluster_trajectories_spectral)
 tkmaster.bind("6", draw_single_cluster)
 tkmaster.bind("7", draw_all_clusters)
 tkmaster.bind("8", compute_tracks)
-tkmaster.bind("9", draw_track)
+tkmaster.bind("9", draw_single_track)
 tkmaster.bind("0", draw_macro_cluster)
 tkmaster.bind("r", reset)
+tkmaster.bind("l", legend)
 
 mainloop()
