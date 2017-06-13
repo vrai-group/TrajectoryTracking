@@ -147,7 +147,7 @@ def compute_trajectories(event):
         # NB: if the last run does not reach a control or the origin, it is not taken.
 
         # Minimum length di of an origin2origin trajectory
-        complete_min_run_length = 50
+        complete_min_run_length = 25
         # Minimum length di of an origin2control trajectory
         middle_min_run_length = 15
         # Maximum length di of a trajectory
@@ -187,9 +187,11 @@ def compute_trajectories(event):
 
                     # If the run is an endingrun (inside the origin):
                     if instance.inside(origin):
-                        if (complete_min_run_length < len(run) < max_run_length) and \
+                        trajectory = Trajectory(run)
+                        # If the trajcetory is between complete_min_run_length and max_run_length
+                        if (complete_min_run_length < trajectory.prefixSum[len(trajectory.prefixSum) - 1] < \
+                                    max_run_length) and \
                                 ((str(instances[begin].time_stamp - instances[i].time_stamp)) < str(3)):
-                            trajectory = Trajectory(run)
                             # Pulisce la traiettoria
                             trajectory.clean()
                             # Filtra la traiettoria attraverso un filtro di Kalman
@@ -198,9 +200,11 @@ def compute_trajectories(event):
                             trajectories.append(trajectory)
                     # If the run is a middlerun (inside a control):
                     else:
-                        if (middle_min_run_length < len(run)) and \
+                        trajectory = Trajectory(run)
+                        # If the trajcetory is between middle_min_run_length and max_run_length
+                        if (middle_min_run_length < trajectory.prefixSum[len(trajectory.prefixSum) - 1] < \
+                                    max_run_length) and \
                                 ((str(instances[begin].time_stamp - instances[i].time_stamp)) < str(3)):
-                            trajectory = Trajectory(run)
                             # Pulisce la traiettoria
                             trajectory.clean()
                             # Filtra la traiettoria attraverso un filtro di Kalman
