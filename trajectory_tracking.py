@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 
 from Tkinter import *
+
+import operator
+from collections import OrderedDict
+
 from clustering import Clustering
 from drawing import Map
 from peewee_models import Cart, Aoi
@@ -385,13 +389,15 @@ def compute_tracks(event):
                 macro_clusters[key] = macro_clusters.get(key, 0) + 1
             print("Macro clusters computed.\n")
 
+            ord_macro_clusters = OrderedDict(sorted(macro_clusters.items(), key=operator.itemgetter(1), reverse=True))
+
             print("Macro clusters: ")
-            for cluster_code in macro_clusters:
+            for cluster_code in ord_macro_clusters:
                 keys = []
                 cluster_codes = list(eval(cluster_code))
                 for code in cluster_codes:
                     keys.append(colors.keys()[code])
-                print keys, macro_clusters[cluster_code]
+                print keys, ord_macro_clusters[cluster_code]
 
 
 def draw_track(event):
@@ -450,19 +456,18 @@ def draw_macro_cluster(event):
             else:
                 # Canvas refresh
                 map.draw_init(Aoi.select(), origin, controls)
-
+                ord_macro_clusters = OrderedDict(
+                    sorted(macro_clusters.items(), key=operator.itemgetter(1), reverse=True))
                 for track in tracks:
-                    if str(track.cluster_code) == macro_clusters.keys()[macro_index]:
+                    if str(track.cluster_code) == ord_macro_clusters.keys()[macro_index]:
                         for traj in track.trajectories:
                             map.draw_trajectory(traj, color=colors.values()[traj.getClusterIdx()])
-                map.create_text(860, 50,
-                                text="N. di Tracks per il Macro Cluster: " + str(macro_clusters.values()[macro_index]),
-                                anchor=W)
-                if macro_index < len(macro_clusters) - 1:
+                map.create_text(860, 50, text="N. di Tracks per il Macro Cluster: " + str(ord_macro_clusters.values() \
+                                                                                              [macro_index]), anchor=W)
+                if macro_index < len(ord_macro_clusters) - 1:
                     macro_index += 1
                 else:
                     macro_index = 0
-
 
 
 def reset(event):
