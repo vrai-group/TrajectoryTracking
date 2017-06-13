@@ -1,9 +1,15 @@
-from Tkinter import Canvas
+from Tkinter import *
 
 class Map(Canvas):
+
     def __init__(self, master, scale=1, **kw):
         Canvas.__init__(self, master, **kw)
         self.scale = scale
+
+        # Rightside Log
+        self.T = Text(self, height=35, width=45)
+        self.T.place(x=830, y=30)
+        self.T.config(state="disabled")
 
     def create_circle(self, x, y, r, color):
         "Disegna un cerchio sul canvas"
@@ -49,4 +55,12 @@ class Map(Canvas):
         for c in controls:
             self.draw_aoi(controls[c], color="peachpuff", text=c)
 
-        self.create_line(830, 0, 830, 640)
+    def log(self, txt):
+        self.T.config(state="normal")
+        self.T.insert(END, txt)
+        self.T.config(state="disabled")
+
+    def clear_log(self):
+        self.T.config(state="normal")
+        self.T.delete(1.0, END)
+        self.T.config(state="disabled")
