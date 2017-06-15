@@ -75,7 +75,7 @@ macro_index = 0
 ##########################
 
 # Inizializza la mappa
-tkmaster = Tk(className="map")
+tkmaster = Tk(className="TrajectoryTracking")
 map = Map(tkmaster, scale=18, width=1200, height=640, bg="#FFFFFF")
 map.pack(expand=True, fill="both", side="right")
 
