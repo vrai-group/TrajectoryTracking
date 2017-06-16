@@ -18,9 +18,9 @@ _Note 2: You don't have to edit anything, excepts the "DATASET" and "MODEL" sect
 ### 2) Origin area and trajectory identifying
 Preliminarily, the collected data within the database are extracted and analyzed to remove the unacceptable positions (usually, the ones outside the bounds of the map). Subsequently, the positions are made use for identifying the actual trajectories, divided into two categories of concept: we have identified as a _"trajectory"_ a run that begins and ends within the same area, called "origin area" (or, simply, "origin"), where almost any cart begins the run (usually, it is the place of the supermarket where the carts are collected); then, some _"sub-trajectory"_ are computed, starting from a _"trajectory"_ and breaking it into pieces which begin and end within some other areas, called "control areas" (or, simply, "controls").
 
-![Market map](http://i.imgur.com/dLzksR8.png)
+![Market map](http://i.imgur.com/gQs181S.png)
 
-_Example of market map: origin area and control areas highlighted_
+_Example of market map: Origin area and control areas highlighted_
 
 ### 3) Filtering
 The process provides that three filtering operations are applied, once during (_"positions out-of-bounds"_) and two after (_"densities of points"_ and _"Kalman filter"_) the trajectory identifying process.
@@ -42,6 +42,10 @@ an input and consists of a quantitative assessment of the relative similarity of
 The innovation on this project mainly relies on the concepts of _"macro-cluster"_ (simplified version of the [Partition-and-Group Framework](http://hanj.cs.illinois.edu/pdf/sigmod07_jglee.pdf)) and _"track"_ (ordered set of sub-trajectories belonging to the same main trajectory but to different clusters). The macro-clustering process is implemented in order to find the most popular patterns in the super-market by finding the most frequent patterns of tracks.
 
 __Macro clustering__: Further clustering of sub-trajectories. After the individual (agglomerative or spectral) clustering, each sub-trajectory belonging to the same trajectory is combined in sequence, in order to recover the original and complete trajectory of the cart. This way, the built trajectory becomes a "track" that belongs to a certain _macro-cluster_, that is a _set of ordered (sub)clusters_. Tracks of the same macro-cluster are then gathered to define which kind of paths are most frequently practiced in the super-market.
+
+![Track example](http://i.imgur.com/5mk5FKT.png)
+
+_Example of track: Composed by four sub-trajectories (yellow -> green -> orange -> blue), it belongs to the macro-cluster "yellow-green-orange-blue" (red dots inside red ellipses has been inserted to simulate and higlight the complete trajectory)_
 
 ## Dependencies
 * Python <= 2.7
