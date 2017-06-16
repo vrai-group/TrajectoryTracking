@@ -48,8 +48,8 @@ class Map(Canvas):
         for aoi in aois:
             self.draw_aoi(aoi, color="#D3D3D3", text=aoi.id)
 
-            # Disegna l'area di origine
-            self.draw_aoi(origin, color="peachpuff", text="ORIGIN")
+        # Disegna l'area di origine
+        self.draw_aoi(origin, color="peachpuff", text="ORIGIN")
 
         # Disegna le aree di controllo
         for c in controls:
