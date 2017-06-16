@@ -39,9 +39,6 @@ except IOError:
 # OF YOUR SQL .DB FILE. THIS WILL PREVENT FROM CREATING A BRAND NEW .DB FILE.
 db = SqliteDatabase(sql_filepath)
 
-
-# db = SqliteDatabase("sqlite/june.db")
-
 class BaseModel(Model):
     class Meta:
         database = db
@@ -67,15 +64,6 @@ model = Aoi
 def build(line):
     "Main build function. Each line is an array of values reflecting the structure of the dataset"
 
-    # Do stuff
-    # c_id = int(line[0])
-    # c_tag_id = str(np.array(line[2]))
-    # c_time_stamp = datetime.datetime.strptime(str(np.array(line[3])), "%Y-%m-%d %H:%M:%S")
-    # c_x = float(line[4])
-    #c_y = float(line[5])
-
-    # Pass to the model the attributes in the form of "attribute=value"
-    # return model(id=c_id, x=c_x, y=c_y, tag_id=c_tag_id, time_stamp=c_time_stamp)
     return model(id=line[0], x_min=line[1], x_max=line[7], y_min=line[2], y_max=line[8])
 
 ###################################################################
