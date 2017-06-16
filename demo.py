@@ -16,7 +16,7 @@ from trajectory import Trajectory
 #   1) Global variables   #
 ###########################
 
-MAX_CLUSTERS = 8  # MAX_CLUSTERS deve essere <= 10
+MAX_CLUSTERS = 8  # MAX_CLUSTERS <= 10
 MAX_CLUSTERS_USER_DEFINED = False
 
 colors = {"purple": "#A020F0",
@@ -451,15 +451,15 @@ def compute_tracks(event):
         else:
             map.log(txt="Tracks already computed. \n\n")
 
-        ord_macro_clusters = OrderedDict(sorted(macro_clusters.items(), key=operator.itemgetter(1), reverse=True))
+        ord_macroclusters = OrderedDict(sorted(macro_clusters.items(), key=operator.itemgetter(1), reverse=True))
 
         map.log(txt="Macro clusters: \n")
-        for cluster_code in ord_macro_clusters:
-            keys = []
-            cluster_codes = list(eval(cluster_code))
-            for code in cluster_codes:
-                keys.append(colors.keys()[code])
-            map.log(txt=str(keys) + " " + str(ord_macro_clusters[cluster_code]) + "\n")
+        for macrocluster_code in ord_macroclusters:
+            color_keys = []
+            cluster_codes = list(eval(macrocluster_code))
+            for cluster_code in sorted(cluster_codes, reverse=True):
+                color_keys.append(colors.keys()[cluster_code])
+            map.log(txt=str(color_keys) + " " + str(ord_macroclusters[macrocluster_code]) + "\n")
 
 
 def draw_single_track(event):
