@@ -39,9 +39,12 @@ except IOError:
 # OF YOUR SQL .DB FILE. THIS WILL PREVENT FROM CREATING A BRAND NEW .DB FILE.
 db = SqliteDatabase(sql_filepath)
 
+
 class BaseModel(Model):
     class Meta:
         database = db
+
+
 ###################################################################
 ###################################################################
 # MODEL
@@ -57,14 +60,17 @@ class Aoi(BaseModel):
     y_min = FloatField()
     y_max = FloatField()
 
+
 # Set "model" variable equal to the defined class name
 # model = Cart
 model = Aoi
+
 
 def build(line):
     "Main build function. Each line is an array of values reflecting the structure of the dataset"
 
     return model(id=line[0], x_min=line[1], x_max=line[7], y_min=line[2], y_max=line[8])
+
 
 ###################################################################
 ###################################################################

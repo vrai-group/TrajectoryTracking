@@ -25,11 +25,8 @@ class Trajectory():
         i = 0
         while i < len(run) - 1:
             ii = i + 1
-            dist_i = 0
             while ii < len(run) - 1:
                 dist_i_ii = euclidean_distance(run[i], run[ii])
-                # dist_ii = euclid_dist(run[ii-1], run[ii])
-                # dist_i += dist_ii
                 if dist_i_ii < param:
                     self.points.remove(run[ii])
                 ii += 1

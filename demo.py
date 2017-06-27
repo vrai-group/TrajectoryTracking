@@ -132,7 +132,7 @@ def compute_trajectories(event):
     # For each cart:
     for cart in carts:
         # ProgressBar
-        map.log(txt="Progress: " + '{0:.3g}'.format(100 * (float(progress_carts) / float(carts.count()))) + "%\n")
+        map.log(txt="Progress:\t" + '{0:.3g}'.format(100 * (float(progress_carts) / float(carts.count()))) + "%\n")
         map.update()
 
         # Get all the cart's instances ordered by time,
@@ -217,7 +217,7 @@ def compute_trajectories(event):
         progress_carts += 1
 
     map.log(txt="Progress: 100%\n\n")
-    map.log(txt="Number of trajectories: " + str(len(trajectories)) + "\n")
+    map.log(txt="Number of trajectories:\t" + str(len(trajectories)) + "\n")
     map.log(txt="\nComputing tracks..\n")
 
     trajectory_index = len(trajectories) - 1
@@ -257,11 +257,11 @@ def draw_single_trajectory(event):
 
         map.log(txt="Cart id: " + str(trajectories[trajectory_index].run[0].tag_id) + "\n")
         map.log(txt=
-                "Inizio della corsa: "
+                "Start:\t"
                 + str(trajectories[trajectory_index].run[len(trajectories[trajectory_index].run) - 1].time_stamp)
                 + "\n"
                 )
-        map.log(txt="Fine della corsa:   " + str(trajectories[trajectory_index].run[0].time_stamp) + "\n")
+        map.log(txt="End:\t" + str(trajectories[trajectory_index].run[0].time_stamp) + "\n")
 
         if trajectory_index >= 0:
             trajectory_index -= 1
@@ -283,7 +283,7 @@ def draw_all_trajectories(event):
         for trajectory in trajectories:
             map.draw_trajectory(trajectory, color="red")
 
-        map.log(txt="N. of trajectories: " + str(len(trajectories)) + "\n")
+        map.log(txt="N. of trajectories:\t" + str(len(trajectories)) + "\n")
 
 
 def cluster_trajectories_agglomerative(event):
@@ -426,7 +426,7 @@ def compute_tracks(event):
             global track_index, macro_index
             track_index = 0
             macro_index = 0
-            print macro_clusters
+            print(macro_clusters)
 
             map.draw_init(Aoi.select(), origin, controls)
 
@@ -453,7 +453,7 @@ def compute_tracks(event):
 
         ord_macroclusters = OrderedDict(sorted(macro_clusters.items(), key=operator.itemgetter(1), reverse=True))
 
-        map.log(txt="Macro clusters: \n")
+        map.log(txt="Macro clusters:\t\n")
         for macrocluster_code in ord_macroclusters:
             color_keys = []
             cluster_codes = list(eval(macrocluster_code))
@@ -479,14 +479,14 @@ def draw_single_track(event):
 
         map.log(txt="Cart id: " + tracks[track_index].trajectories[0].run[0].tag_id + "\n")
         map.log(txt=
-                "Inizio della corsa: "
+                "Start:\t"
                 + str(tracks[track_index].trajectories[len(tracks[track_index].trajectories) - 1]
                       .run[len(
                     tracks[track_index].trajectories[len(tracks[track_index].trajectories) - 1].run) - 1]
                       .time_stamp) + "\n"
                 )
         map.log(txt=
-                "Fine della corsa:   "
+                "End:\t"
                 + str(tracks[track_index].trajectories[0].run[0].time_stamp) + "\n"
                 )
 
@@ -514,7 +514,7 @@ def draw_macro_cluster(event):
                 for traj in track.trajectories:
                     map.draw_trajectory(traj, color=colors.values()[traj.getClusterIdx()])
 
-        map.log(txt="N. di Tracks per il Macro Cluster: " + str(ord_macro_clusters.values()[macro_index]) \
+        map.log(txt="N. of Tracks in each Macro Cluster:\t" + str(ord_macro_clusters.values()[macro_index]) \
                     + "\n")
 
         if macro_index < len(ord_macro_clusters) - 1:

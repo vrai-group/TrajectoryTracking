@@ -79,7 +79,6 @@ class Clustering:
             for c in range(size):
                 dist = self.modHausDist(r, c)
                 self.distMat[r, c] *= dist
-            #                 self.distMat[c, r] *= dist
 
     def createStdDevs(self):
         rowSortedDistMat = np.copy(self.distMat)

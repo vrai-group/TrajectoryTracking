@@ -1,7 +1,7 @@
 from Tkinter import *
 
-class Map(Canvas):
 
+class Map(Canvas):
     def __init__(self, master, scale=1, **kw):
         Canvas.__init__(self, master, **kw)
         self.scale = scale

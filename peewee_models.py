@@ -4,12 +4,10 @@ from peewee import *
 db = SqliteDatabase('database/sqlite/testset.db')
 
 
-# db = SqliteDatabase('database/sqlite/july1stweek.db')
-# db = SqliteDatabase('database/sqlite/june.db')
-
 class BaseModel(Model):
     class Meta:
         database = db
+
 
 class Aoi(BaseModel):
     "Regioni di interesse che costituiscono la mappa"
@@ -18,6 +16,7 @@ class Aoi(BaseModel):
     x_max = FloatField()
     y_min = FloatField()
     y_max = FloatField()
+
 
 class Cart(BaseModel):
     "Istanze che descrivono la posizione di un carrello"
