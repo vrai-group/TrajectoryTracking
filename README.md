@@ -9,7 +9,7 @@ The system collects the trajectories acquired by the shopping carts. These data 
 Note 1: Before you start using the `builder.py` script, make sure that a folder called `sqlite` exists in the root folder of the `builder.py` script (just create it if necessary). It is the folder where you will find the `.db` result files (you can edit the result folder name whenever you want by editing the `builder.py` script).
 
 In the `builder.py` script there are two editable contents: the `DATASET` section and the `MODEL` section.
-* __Dataset section__: Here it is possible to find three fields to customize. The `dataset_folder` is the folder containing the dataset file. Editing the `dataset_ext` allows to specify the text-file extention of dataset. (Example: http://i.imgur.com/uTLPjrP.png)
+* __Dataset section__: Here it is possible to find three fields to customize. The `dataset_folder` is the folder containing the dataset file. Editing the `dataset_ext` allows to specify the text-file extention of dataset.
 
 * __Model section__: It is the core of the builder-script. It is necessary to customize the `class` for creating the model to use. Then, with the `build(line)` function body it is possible to specify how save each `line` of the dataset (note that the `build` function must return an object called `model` which is the constructor of custom `class`).
 
