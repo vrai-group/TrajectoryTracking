@@ -1,11 +1,10 @@
 from Tkinter import *
-
+import datetime
 
 class Map(Canvas):
     def __init__(self, master, scale=1, **kw):
         Canvas.__init__(self, master, **kw)
         self.scale = scale
-
         # Rightside Log
         self.T = Text(self, height=35, width=45)
         self.T.place(x=830, y=30)
@@ -24,6 +23,9 @@ class Map(Canvas):
         self.create_text((aoi.x_min + aoi.x_max) * self.scale / 2,
                          (aoi.y_max + aoi.y_min) * self.scale / 2,
                          text=text)
+
+    def generate_eps(self):
+        self.postscript(file=datetime.datetime.now().isoformat() + " - screenshot.eps")
 
     def draw_trajectory(self, trajectory, color):
         "Disegna una traiettoria sulla mappa"

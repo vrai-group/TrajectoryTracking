@@ -106,6 +106,7 @@ def show_legend():
     map.log(txt="8: Compute tracks\n")
     map.log(txt="9: Draw single track\n")
     map.log(txt="0: Draw macro cluster\n")
+    map.log(txt="E: Take screenshot\n")
     map.log(txt="L: Show legend\n")
 
 
@@ -269,6 +270,9 @@ def draw_single_trajectory(event):
     else:
         map.log(txt="Error: No trajectories computed.\n")
 
+
+def exportToEPS(event):
+    map.generate_eps()
 
 def draw_all_trajectories(event):
     map.clear_log()
@@ -544,6 +548,7 @@ tkmaster.bind("7", draw_all_clusters)
 tkmaster.bind("8", compute_tracks)
 tkmaster.bind("9", draw_single_track)
 tkmaster.bind("0", draw_macro_cluster)
+tkmaster.bind("e", exportToEPS)
 tkmaster.bind("l", legend)
 
 mainloop()
